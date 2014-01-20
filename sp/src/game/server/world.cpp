@@ -714,7 +714,7 @@ bool CWorld::GetDisplayTitle() const
 
 bool CWorld::GetStartDark() const
 {
-	return m_bStartDark;
+	return true;
 }
 
 void CWorld::SetDisplayTitle( bool display )
@@ -724,7 +724,7 @@ void CWorld::SetDisplayTitle( bool display )
 
 void CWorld::SetStartDark( bool startdark )
 {
-	m_bStartDark = startdark;
+	m_bStartDark = true;
 }
 
 bool CWorld::IsColdWorld( void )
