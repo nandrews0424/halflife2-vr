@@ -2338,6 +2338,11 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		CDebugViewRender::GenerateOverdrawForTesting();
 	}
 
+	if ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 70 )
+	{
+		DrawScope(view);
+	}
+
 	render->PopView( GetFrustum() );
 	g_WorldListCache.Flush();
 }
@@ -3173,6 +3178,63 @@ void CViewRender::DrawMonitors( const CViewSetup &cameraView )
 #endif
 
 #endif // USE_MONITORS
+}
+
+
+
+void CViewRender::DrawScope( const CViewSetup &viewSet )^M
+{
+	C_BasePlayer *localPlayer = C_BasePlayer::GetLocalPlayer();
+
+	if(!localPlayer)
+		return;
+
+	if( !localPlayer->GetActiveWeapon() )
+		return;
+
+	if( !localPlayer->GetActiveWeapon()->GetViewModel() )
+		return;
+
+	//Copy our current View.
+	CViewSetup scopeView(viewSet);
+
+	if ( g_MotionTracker()->isTrackingWeapon() )
+	{
+		// same offsets should apply here as did to the vm but we'll see...
+		g_MotionTracker()->updateViewmodelOffset(scopeView.origin, scopeView.angles);
+	}
+
+	//Get our camera render target.
+	ITexture *pRenderTarget = GetScopeTexture();
+
+	if( pRenderTarget == NULL )
+		return;
+
+	//  Our view information, Origin, View Direction, window size
+	//  location on material, and visual ratios.
+	scopeView.width = pRenderTarget->GetActualWidth();
+	scopeView.height = pRenderTarget->GetActualHeight();
+	scopeView.x = 0;
+	scopeView.y = 0;
+	scopeView.fov = 7.f;  // change to override scope zoom
+	scopeView.m_bOrtho = false;
+	scopeView.m_bViewToProjectionOverride = false; // this was the magic that prevents it from getting all warped and FOV-overriden
+
+	scopeView.m_flAspectRatio = 1.0f;
+	scopeView.m_eStereoEye = STEREO_EYE_MONO;
+
+	//Set the view up and output the scene to our RenderTarget (Scope Material).
+	render->Push3DView( scopeView, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, pRenderTarget, GetFrustum() );
+
+	SkyboxVisibility_t nSkyboxVisible = SKYBOX_NOT_VISIBLE;
+	int ClearFlags = 0;
+	CSkyboxView *pSkyView = new CSkyboxView( this );
+	if( pSkyView->Setup( scopeView, &ClearFlags, &nSkyboxVisible ) != false )
+	AddViewToScene( pSkyView );
+	SafeRelease( pSkyView );
+
+	ViewDrawScene( false, SKYBOX_3DSKYBOX_VISIBLE, scopeView, VIEW_CLEAR_DEPTH, VIEW_MONITOR );
+	render->PopView( m_Frustum );^M
 }
 
 

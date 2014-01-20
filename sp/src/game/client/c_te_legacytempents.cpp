@@ -1639,7 +1639,7 @@ void CTempEnts::Sprite_Smoke( C_LocalTempEntity *pTemp, float scale )
 //			angles - 
 //			type - 
 //-----------------------------------------------------------------------------
-void CTempEnts::EjectBrass( const Vector &pos1, const QAngle &angles, const QAngle &gunAngles, int type )
+void CTempEnts::EjectBrass( const Vector &pos1, const QAngle &angles, const QAngle &gunAngles, int type, bool noVelocity )
 {
 	if ( cl_ejectbrass.GetBool() == false )
 		return;
@@ -1678,15 +1678,27 @@ void CTempEnts::EjectBrass( const Vector &pos1, const QAngle &angles, const QAng
 	pTemp->SetRenderMode( kRenderNormal );
 	pTemp->tempent_renderamt = 255;		// Set this for fadeout
 
-	Vector	dir;
-
-	AngleVectors( angles, &dir );
-
-	dir *= random->RandomFloat( 150.0f, 200.0f );
-
-	pTemp->SetVelocity( Vector(dir[0] + random->RandomFloat(-64,64),
-						dir[1] + random->RandomFloat(-64,64),
-						dir[2] + random->RandomFloat(  0,64) ) );
+	// noVelocity means the shell should simply fall rather than be ejected...
+	if ( noVelocity ) 
+	{
+		Vector  dir;
+		AngleVectors(gunAngles, &dir);
+		Vector shellVelocity = dir.Normalized()* -10;
+		shellVelocity.z = 16.f; // override z of shell path to make fall slower?
+		pTemp->SetVelocity( shellVelocity ); // set a bit of up velocity?
+		pTemp->m_vecTempEntAngVelocity[0] = random->RandomFloat(-256,256);
+		pTemp->m_vecTempEntAngVelocity[1] = random->RandomFloat(-256,256);
+		pTemp->m_vecTempEntAngVelocity[2] = random->RandomFloat(-256,256);
+	}
+ 	else 
+	{
+		Vector	dir;
+		AngleVectors( angles, &dir );
+		dir *= random->RandomFloat( 150.0f, 200.0f );
+		pTemp->SetVelocity( Vector(dir[0] + random->RandomFloat(-64,64),
+							dir[1] + random->RandomFloat(-64,64),
+							dir[2] + random->RandomFloat(  0,64) ) );
+	}
 
 	pTemp->die = gpGlobals->curtime + 1.0f + random->RandomFloat( 0.0f, 1.0f );	// Add an extra 0-1 secs of life	
 }
@@ -3144,8 +3156,8 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 
 	pSimple->GetBinding().SetBBox( origin - Vector( 4, 4, 4 ), origin + Vector( 4, 4, 4 ) );
 
-	Vector forward;
-	AngleVectors( angles, &forward, NULL, NULL );
+	Vector forward,right,up;
+	AngleVectors( angles, &forward, &right, &up );
 
 	SimpleParticle *pParticle;
 	Vector			offset;
@@ -3210,6 +3222,17 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= 0.0f;
 	}
+
+	// adding some brass...
+	QAngle shellAngle;
+	        
+	up.z += .25; // up the angle a touch...
+	VectorAngles(up, shellAngle);
+	// todo: get the attachment
+	Vector ejectionOrigin;
+	QAngle tmp;
+	FX_GetAttachmentTransform( hEntity, 2, &ejectionOrigin, &tmp );
+	EjectBrass( ejectionOrigin, shellAngle, angles, 0, false );
 }
 
 //==================================================

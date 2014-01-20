@@ -80,6 +80,22 @@ ITexture *GetCameraTexture( void )
 	return s_pCameraTexture;
 }
 
+//============================================================================
+// Scope Texture
+//============================================================================
+static CTextureReference s_pScopeTexture;
+ITexture *GetScopeTexture( void )
+{
+	if ( !s_pScopeTexture )
+	{
+		s_pScopeTexture.Init(materials->FindTexture("_rt_Scope", TEXTURE_GROUP_RENDER_TARGET));
+		Assert(!IsErrorTexture(s_pScopeTexture));
+		AddReleaseFunc();
+	}
+	return s_pScopeTexture;
+}
+
+
 //=============================================================================
 // Full Frame Depth Texture
 //=============================================================================
@@ -247,6 +263,7 @@ void ReleaseRenderTargets( void )
 {
 	s_pPowerOfTwoFrameBufferTexture.Shutdown();
 	s_pCameraTexture.Shutdown();
+	s_pScopeTexture.Shutdown();
 	s_pWaterReflectionTexture.Shutdown();
 	s_pWaterRefractionTexture.Shutdown();
 	s_pQuarterSizedFB0.Shutdown();
