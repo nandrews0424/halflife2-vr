@@ -476,6 +476,7 @@ public:
 	float GetLoadWeight( void ) const { return m_flLoadWeight; }
 	void SetAngleAlignment( float alignAngleCosine ) { m_angleAlignment = alignAngleCosine; }
 	void SetIgnorePitch( bool bIgnore ) { m_bIgnoreRelativePitch = bIgnore; }
+	void SetHandPickup( bool handPickup ) { m_bHands = handPickup; }
 	QAngle TransformAnglesToPlayerSpace( const QAngle &anglesIn, CBasePlayer *pPlayer );
 	QAngle TransformAnglesFromPlayerSpace( const QAngle &anglesIn, CBasePlayer *pPlayer );
 
@@ -498,6 +499,8 @@ private:
 	float			m_angleAlignment;
 	bool			m_bCarriedEntityBlocksLOS;
 	bool			m_bIgnoreRelativePitch;
+	bool 			m_bHands;
+	SolidType_t		m_attachedSolidType;
 
 	float			m_flLoadWeight;
 	float			m_savedRotDamping[VPHYSICS_MAX_OBJECT_LIST_COUNT];
@@ -567,6 +570,7 @@ CGrabController::CGrabController( void )
 	m_flDistanceOffset = 0;
 	// NVNT constructing m_pControllingPlayer to NULL
 	m_pControllingPlayer = NULL;
+	m_bHands = false;
 }
 
 CGrabController::~CGrabController( void )
@@ -710,7 +714,9 @@ QAngle CGrabController::TransformAnglesFromPlayerSpace( const QAngle &anglesIn, 
 	{
 		matrix3x4_t test;
 		QAngle angleTest = pPlayer->EyeAngles();
-		angleTest.x = 0;
+		if ( !m_bHands )
+			angleTest.x = 0;
+
 		AngleMatrix( angleTest, test );
 		return TransformAnglesToWorldSpace( anglesIn, test );
 	}
@@ -818,6 +824,10 @@ void CGrabController::AttachEntity( CBasePlayer *pPlayer, CBaseEntity *pEntity, 
 	}
 
 	m_bAllowObjectOverhead = IsObjectAllowedOverhead( pEntity );
+
+	// noclip the player and picked up entity
+	PhysDisableEntityCollisions(pEntity, m_pControllingPlayer);
+	
 }
 
 static void ClampPhysicsVelocity( IPhysicsObject *pPhys, float linearLimit, float angularLimit )
@@ -840,6 +850,9 @@ void CGrabController::DetachEntity( bool bClearVelocity )
 	CBaseEntity *pEntity = GetAttached();
 	if ( pEntity )
 	{
+		// restore player and entity collisions
+		PhysEnableEntityCollisions(pEntity, m_pControllingPlayer);
+		
 		// Restore the LS blocking state
 		pEntity->SetBlocksLOS( m_bCarriedEntityBlocksLOS );
 		IPhysicsObject *pList[VPHYSICS_MAX_OBJECT_LIST_COUNT];
@@ -1040,7 +1053,9 @@ void CPlayerPickupController::Init( CBasePlayer *pPlayer, CBaseEntity *pObject )
 	// done so I'll go across level transitions with the player
 	SetParent( pPlayer );
 	m_grabController.SetIgnorePitch( true );
+	m_grabController.SetHandPickup( true );
 	m_grabController.SetAngleAlignment( DOT_30DEGREE );
+
 	m_pPlayer = pPlayer;
 	IPhysicsObject *pPhysics = pObject->VPhysicsGetObject();
 	
@@ -1194,8 +1209,9 @@ void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject )
 // Physcannon
 //-----------------------------------------------------------------------------
 
-#define	NUM_BEAMS	4
-#define	NUM_SPRITES	6
+#define	NUM_BEAMS	6
+#define	NUM_SPRITES	9
+#define	END_SPRITES	3
 
 struct thrown_objects_t
 {
@@ -1355,7 +1371,7 @@ protected:
 
 	CHandle<CBeam>		m_hBeams[NUM_BEAMS];
 	CHandle<CSprite>	m_hGlowSprites[NUM_SPRITES];
-	CHandle<CSprite>	m_hEndSprites[2];
+	CHandle<CSprite>	m_hEndSprites[END_SPRITES];
 	float				m_flEndSpritesOverride[2];
 	CHandle<CSprite>	m_hCenterSprite;
 	CHandle<CSprite>	m_hBlastSprite;
@@ -2761,15 +2777,17 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	
 	float pitch = AngleDistance(playerAngles.x,0);
 
-	if( !m_bAllowObjectOverhead )
-	{
-		playerAngles.x = clamp( pitch, -75, 75 );
-	}
-	else
-	{
-		playerAngles.x = clamp( pitch, -90, 75 );
-	}
 
+	if (!m_bHands) {
+		if( !m_bAllowObjectOverhead )
+		{
+			playerAngles.x = clamp( pitch, -75, 75 );
+		}
+		else
+		{
+			playerAngles.x = clamp( pitch, -90, 75 );
+		}
+	}
 	
 	
 	// Now clamp a sphere of object radius at end to the player's bbox
@@ -2778,12 +2796,46 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	float playerRadius = player2d.Length2D();
 	float radius = playerRadius + fabs(DotProduct( forward, radial ));
 
-	float distance = 24 + ( radius * 2.0f );
+	float distance = 20 + ( radius * 2.0f );
+	Vector start = pPlayer->Weapon_ShootPosition();
 
+		
+	// we're just using our hands here, so push it out a bit to keep from contacting player but allow normal hand control
+	if ( m_bHands ) {
+
+		Vector mins, max;
+		pEntity->CollisionProp()->WorldSpaceAABB(&mins, &max);
+		float objectSize = (mins-max).Length();
+						
+		forward = pPlayer->EyeToWeaponOffset().Normalized();
+		forward.z = 0; // just push it forward, not up or down
+
+		distance = radius*2*(objectSize / 120.f) + m_flDistanceOffset;
+				
+		Vector torsoForward;
+		AngleVectors(pPlayer->TorsoAngles(), &torsoForward);
+				
+		QAngle angles = TransformAnglesFromPlayerSpace( m_attachedAnglesPlayerSpace, pPlayer );
+		
+		matrix3x4_t attachedToWorld;
+		Vector end, offset;
+		AngleMatrix( angles, attachedToWorld );
+		VectorRotate( m_attachedPositionObjectSpace, attachedToWorld, offset );
+		
+		end = start + torsoForward*distance; 
+
+		// // boost the hand up/down offset to make it a bit easier to stack larger objects etc
+		if ( objectSize > 70 )
+			end.z += pPlayer->EyeToWeaponOffset().z / 2; 
+		
+		SetTargetPosition( end - offset, angles );
+		return true;
+	}
+	
 	// Add the prop's distance offset
 	distance += m_flDistanceOffset;
 
-	Vector start = pPlayer->Weapon_ShootPosition();
+	
 	Vector end = start + ( forward * distance );
 
 	trace_t	tr;
@@ -2828,6 +2880,7 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 							0.0f );
 	}
 
+
 	QAngle angles = TransformAnglesFromPlayerSpace( m_attachedAnglesPlayerSpace, pPlayer );
 	
 	// If it has a preferred orientation, update to ensure we're still oriented correctly.
@@ -2845,7 +2898,7 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	Vector offset;
 	AngleMatrix( angles, attachedToWorld );
 	VectorRotate( m_attachedPositionObjectSpace, attachedToWorld, offset );
-
+		
 	SetTargetPosition( end - offset, angles );
 
 	return true;
@@ -3157,17 +3210,17 @@ void CWeaponPhysCannon::DoEffectIdle( void )
 	float flScaleFactor = SpriteScaleFactor();
 
 	// Flicker the end sprites
-	if ( ( m_hEndSprites[0] != NULL ) && ( m_hEndSprites[1] != NULL ) )
+	//Make the end points flicker as fast as possible
+	//FIXME: Make this a property of the CSprite class!
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
-		//Make the end points flicker as fast as possible
-		//FIXME: Make this a property of the CSprite class!
-		for ( int i = 0; i < 2; i++ )
+		if ( m_hEndSprites[i] != NULL ) 
 		{
 			m_hEndSprites[i]->SetBrightness( random->RandomInt( 200, 255 ) );
 			m_hEndSprites[i]->SetScale( random->RandomFloat( 0.1, 0.15 ) * flScaleFactor );
 		}
 	}
-
+	
 	// Flicker the glow sprites
 	for ( int i = 0; i < NUM_SPRITES; i++ )
 	{
@@ -3240,12 +3293,12 @@ void CWeaponPhysCannon::DoEffectIdle( void )
 			if ( m_EffectState == EFFECT_HOLDING )
 			{
 				m_hCenterSprite->SetBrightness( random->RandomInt( 32, 64 ) );
-				m_hCenterSprite->SetScale( random->RandomFloat( 0.2, 0.25 ) * flScaleFactor );
+				m_hCenterSprite->SetScale( random->RandomFloat( 0.15, 0.275 ) * flScaleFactor );
 			}
 			else
 			{
 				m_hCenterSprite->SetBrightness( random->RandomInt( 32, 64 ) );
-				m_hCenterSprite->SetScale( random->RandomFloat( 0.125, 0.15 ) * flScaleFactor );
+				m_hCenterSprite->SetScale( random->RandomFloat( 0.075, 0.175 ) * flScaleFactor );
 			}
 		}
 		
@@ -3642,7 +3695,7 @@ void CWeaponPhysCannon::DestroyEffects( void )
 		}
 	}
 
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -3690,7 +3743,7 @@ void CWeaponPhysCannon::StopEffects( bool stopSound )
 		}
 	}
 
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -3733,8 +3786,8 @@ void CWeaponPhysCannon::StartEffects( void )
 			"fork2t",
 			"fork1t",
 			"fork2t",
-			"fork1t",
-			"fork2t",
+			"fork3t",
+			"fork3t",
 		};
 
 		m_hBeams[i] = CBeam::BeamCreate( 
@@ -3770,7 +3823,10 @@ void CWeaponPhysCannon::StartEffects( void )
 			"fork1t",
 			"fork2b",
 			"fork2m",
-			"fork2t"
+			"fork2t",
+			"fork3b",
+			"fork3m",
+			"fork3t"
 		};
 
 		m_hGlowSprites[i] = CSprite::SpriteCreate( 
@@ -3795,14 +3851,15 @@ void CWeaponPhysCannon::StartEffects( void )
 	}
 
 	//Create the endcap sprites
-	for ( i = 0; i < 2; i++ )
+	for ( i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] == NULL )
 		{
 			const char *attachNames[] = 
 			{
 				"fork1t",
-				"fork2t"
+				"fork2t",
+				"fork3t"
 			};
 
 			m_hEndSprites[i] = CSprite::SpriteCreate( 
@@ -3864,7 +3921,7 @@ void CWeaponPhysCannon::DoEffectClosed( void )
 	}
 
 	// Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -3917,7 +3974,7 @@ void CWeaponPhysCannon::DoMegaEffectClosed( void )
 	}
 
 	// Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -3965,12 +4022,12 @@ void CWeaponPhysCannon::DoEffectReady( )
 	if ( m_hCenterSprite != NULL )
 	{
 		m_hCenterSprite->SetBrightness( 128, 0.2f );
-		m_hCenterSprite->SetScale( 0.15f, 0.2f );
+		m_hCenterSprite->SetScale( 0.10f, 0.2f );
 		m_hCenterSprite->TurnOn();
 	}
 
 	//Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -4019,12 +4076,12 @@ void CWeaponPhysCannon::DoEffectHolding( )
 	if ( m_hCenterSprite != NULL )
 	{
 		m_hCenterSprite->SetBrightness( 255, 0.1f );
-		m_hCenterSprite->SetScale( 0.2f, 0.2f );
+		m_hCenterSprite->SetScale( 0.15f, 0.2f );
 		m_hCenterSprite->TurnOn();
 	}
 
 	// Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -4183,12 +4240,12 @@ void CWeaponPhysCannon::DoMegaEffectHolding( void )
 	if ( m_hCenterSprite != NULL )
 	{
 		m_hCenterSprite->SetBrightness( 255, 0.1f );
-		m_hCenterSprite->SetScale( 0.2f, 0.2f );
+		m_hCenterSprite->SetScale( 0.15f, 0.2f );
 		m_hCenterSprite->TurnOn();
 	}
 
 	// Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{
@@ -4228,12 +4285,12 @@ void CWeaponPhysCannon::DoMegaEffectReady( void )
 	if ( m_hCenterSprite != NULL )
 	{
 		m_hCenterSprite->SetBrightness( 128, 0.2f );
-		m_hCenterSprite->SetScale( 0.15f, 0.2f );
+		m_hCenterSprite->SetScale( 0.10f, 0.2f );
 		m_hCenterSprite->TurnOn();
 	}
 
 	//Turn off the end-caps
-	for ( int i = 0; i < 2; i++ )
+	for ( int i = 0; i < END_SPRITES; i++ )
 	{
 		if ( m_hEndSprites[i] != NULL )
 		{

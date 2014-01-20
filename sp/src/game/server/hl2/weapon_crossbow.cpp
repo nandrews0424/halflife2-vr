@@ -596,7 +596,7 @@ void CWeaponCrossbow::CheckZoomToggle( void )
 void CWeaponCrossbow::ItemBusyFrame( void )
 {
 	// Allow zoom toggling even when we're reloading
-	CheckZoomToggle();
+	// CheckZoomToggle();
 }
 
 //-----------------------------------------------------------------------------
@@ -605,7 +605,7 @@ void CWeaponCrossbow::ItemBusyFrame( void )
 void CWeaponCrossbow::ItemPostFrame( void )
 {
 	// Allow zoom toggling
-	CheckZoomToggle();
+	// CheckZoomToggle();
 
 	if ( m_bMustReload && HasWeaponIdleTimeElapsed() )
 	{

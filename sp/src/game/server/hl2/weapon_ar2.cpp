@@ -124,6 +124,7 @@ void CWeaponAR2::Precache( void )
 {
 	BaseClass::Precache();
 
+	PrecacheParticleSystem( "weapon_muzzle_smoke_long" );
 	UTIL_PrecacheOther( "prop_combine_ball" );
 	UTIL_PrecacheOther( "env_entity_dissolver" );
 }
@@ -178,6 +179,33 @@ Activity CWeaponAR2::GetPrimaryAttackActivity( void )
 
 	return ACT_VM_RECOIL3;
 }
+
+
+
+void CWeaponAR2::PrimaryAttack( void )
+{
+	if ( ( gpGlobals->curtime - .5f ) >  m_flLastAttackTime )
+	{
+	    m_nShotsFired = 1;
+	}
+	
+	if ( m_nShotsFired == 12 )
+	{
+		m_nShotsFired = 1;
+		CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+
+		if( pOwner )
+		{
+			DispatchParticleEffect("weapon_muzzle_smoke_long", PATTACH_POINT_FOLLOW, pOwner->GetViewModel(), "muzzle", true);
+		}
+	}
+
+	BaseClass::PrimaryAttack();
+}
+
+
+
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
