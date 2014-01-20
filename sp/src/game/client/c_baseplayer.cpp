@@ -49,6 +49,7 @@
 #include "steam/steam_api.h"
 #include "sourcevr/isourcevirtualreality.h"
 #include "client_virtualreality.h"
+#include "vr/vr_controller.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -849,6 +850,10 @@ void C_BasePlayer::PostDataUpdate( DataUpdateType_t updateType )
 		
 		}
 		SetLocalAngles( angles );
+
+		g_MotionTracker()->getEyeToWeaponOffset(m_eyeToWeaponOffset);
+ 		g_MotionTracker()->getViewOffset(m_eyeOffset);
+ 		m_torsoAngles = g_MotionTracker()->getTorsoAngles();
 
 		if ( !m_bWasFreezeFraming && GetObserverMode() == OBS_MODE_FREEZECAM )
 		{
@@ -2365,74 +2370,13 @@ bool C_BasePlayer::IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredC
 //-----------------------------------------------------------------------------
 float C_BasePlayer::GetFOV( void )
 {
-	// Allow users to override the FOV during demo playback
-	bool bUseDemoOverrideFov = engine->IsPlayingDemo() && demo_fov_override.GetFloat() > 0.0f;
-#if defined( REPLAY_ENABLED )
-	bUseDemoOverrideFov = bUseDemoOverrideFov && !g_pEngineClientReplay->IsPlayingReplayDemo();
-#endif
-	if ( bUseDemoOverrideFov )
-	{
-		return clamp( demo_fov_override.GetFloat(), 10.0f, 90.0f );
-	}
-
-	if ( GetObserverMode() == OBS_MODE_IN_EYE )
-	{
-		C_BasePlayer *pTargetPlayer = dynamic_cast<C_BasePlayer*>( GetObserverTarget() );
-
-		// get fov from observer target. Not if target is observer itself
-		if ( pTargetPlayer && !pTargetPlayer->IsObserver() )
-		{
-			return pTargetPlayer->GetFOV();
-		}
-	}
-
-	// Allow our vehicle to override our FOV if it's currently at the default FOV.
-	float flDefaultFOV;
 	IClientVehicle *pVehicle = GetVehicle();
 	if ( pVehicle )
 	{
 		CacheVehicleView();
-		flDefaultFOV = ( m_flVehicleViewFOV == 0 ) ? GetDefaultFOV() : m_flVehicleViewFOV;
-	}
-	else
-	{
-		flDefaultFOV = GetDefaultFOV();
-	}
-	
-	float fFOV = ( m_iFOV == 0 ) ? flDefaultFOV : m_iFOV;
-
-	// Don't do lerping during prediction. It's only necessary when actually rendering,
-	// and it'll cause problems due to prediction timing messiness.
-	if ( !prediction->InPrediction() )
-	{
-		// See if we need to lerp the values for local player
-		if ( IsLocalPlayer() && ( fFOV != m_iFOVStart ) && (m_Local.m_flFOVRate > 0.0f ) )
-		{
-			float deltaTime = (float)( gpGlobals->curtime - m_flFOVTime ) / m_Local.m_flFOVRate;
-
-#if !defined( NO_ENTITY_PREDICTION )
-			if ( GetPredictable() )
-			{
-				// m_flFOVTime was set to a predicted time in the future, because the FOV change was predicted.
-				deltaTime = (float)( GetFinalPredictedTime() - m_flFOVTime );
-				deltaTime += ( gpGlobals->interpolation_amount * TICK_INTERVAL );
-				deltaTime /= m_Local.m_flFOVRate;
-			}
-#endif
-
-			if ( deltaTime >= 1.0f )
-			{
-				//If we're past the zoom time, just take the new value and stop lerping
-				m_iFOVStart = fFOV;
-			}
-			else
-			{
-				fFOV = SimpleSplineRemapValClamped( deltaTime, 0.0f, 1.0f, (float) m_iFOVStart, fFOV );
-			}
-		}
 	}
 
-	return fFOV;
+	return GetDefaultFOV();
 }
 
 void RecvProxy_LocalVelocityX( const CRecvProxyData *pData, void *pStruct, void *pOut )
