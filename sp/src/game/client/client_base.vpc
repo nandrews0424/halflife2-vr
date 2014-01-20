@@ -68,7 +68,7 @@ $Configuration
 		$SystemFrameworks				"Carbon" [$OSXALL]
 		$SystemLibraries				"rt" [$LINUXALL]
 		$IgnoreImportLibrary			"TRUE"
-		$AdditionalDependencies			"$BASE winmm.lib"	[$WIN32]
+		$AdditionalDependencies			"$BASE winmm.lib  sixense.lib sixense_utils.lib"	[$WIN32]
 		$AdditionalDependencies			"$BASE wsock32.lib Ws2_32.lib" [$BUILD_REPLAY]
 	}
 }
@@ -173,6 +173,13 @@ $Project
 		
 	$Folder	"Source Files"
 	{
+		// HLVR files
+		$File   "$SRCDIR\game\shared\vr\vr_controller.h"
+		$File   "$SRCDIR\game\shared\vr\vr_controller.cpp"
+		$File   "vgui_health_screen.cpp"
+		$File   "tne_RenderTargets.h"
+		$File   "tne_RenderTargets.cpp"
+
 		$File	"hl2\C_Func_Monitor.cpp"
 		$File	"geiger.cpp"
 		$File	"history_resource.cpp"
@@ -1256,6 +1263,9 @@ $Project
 		$Lib $LIBCOMMON/libcrypto [$POSIX]
 
 		$ImpLib	"$LIBCOMMON\curl"	  [$OSXALL]
+
+		$Lib    "$LIBCOMMON\sixense"
+		$Lib    "$LIBCOMMON\sixense_utils"
 
 		$Lib	"$LIBCOMMON\libcurl" [$WIN32]
 		$Lib   "libz" [$WIN32]
