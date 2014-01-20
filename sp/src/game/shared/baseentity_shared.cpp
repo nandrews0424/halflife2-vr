@@ -22,6 +22,7 @@
 
 #ifdef CLIENT_DLL
 	#include "c_te_effect_dispatch.h"
+	#include "vr/vr_controller.h"
 #else
 	#include "te_effect_dispatch.h"
 	#include "soundent.h"
@@ -2175,10 +2176,13 @@ void CBaseEntity::ComputeTracerStartPosition( const Vector &vecShotSrc, Vector *
 	if ( IsPlayer() )
 	{
 		// adjust tracer position for player
-		Vector forward, right;
+		Vector forward, right,up;
 		CBasePlayer *pPlayer = ToBasePlayer( this );
-		pPlayer->EyeVectors( &forward, &right, NULL );
-		*pVecTracerStart = vecShotSrc + Vector ( 0 , 0 , -4 ) + right * 2 + forward * 16;
+
+		// VR TODO: this doesn't make a ton of sense, likely never went back and fixed it....
+		Vector e = pPlayer->EyeToWeaponOffset();
+		pPlayer->EyeVectors( &forward, &right, &up );
+		*pVecTracerStart = pPlayer->Weapon_ShootPosition() + right * 2 + forward * 16 + up * 4;
 	}
 	else
 	{

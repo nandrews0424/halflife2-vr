@@ -460,5 +460,35 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 			}
 		}
 	}
+
+	// VR Mod - parse hud weapon offsets... settings are hud relative (forward is as looking at the hud not weapon alignment)^M
+	weaponHudOffset.Init(-3, -11, 3);
+
+	KeyValues *offsets = pKeyValuesData->FindKey( "weaponHudOffset" );
+	if(offsets)
+	{
+		weaponHudOffset.x                       = offsets->GetFloat( "forward", weaponHudOffset.x );
+		weaponHudOffset.y                       = offsets->GetFloat( "right", weaponHudOffset.y );
+		weaponHudOffset.z                       = offsets->GetFloat( "up", weaponHudOffset.z );
+	}
+	// laser crosshair info
+	KeyValues *kv = pKeyValuesData->FindKey( "laserCrosshair" );
+	if(kv)
+	{
+		float r,g,b,a = 0.f;
+		r = kv->GetFloat( "r", 255 );
+		g = kv->GetFloat( "g", 0 );
+		b = kv->GetFloat( "b", 0 );
+		a = kv->GetFloat( "a", 255 );
+
+		laserCrosshairColor.SetColor(r,g,b,a);  
+		laserCrosshairScale = kv->GetFloat( "scale", .25 );
+	}
+	else
+	{
+		laserCrosshairColor.SetColor(255,0, 0, 0);
+		laserCrosshairScale = .0625;
+	}
 }
+
 
