@@ -3,8 +3,8 @@
 	HudHealth [$WIN32]
 	{
 		"fieldName"		"HudHealth"
-		"xpos"	"16"
-		"ypos"	"432"
+		"xpos"	"1120"
+		"ypos"	"370"
 		"wide"	"102"
 		"tall"  "36"
 		"visible" "1"
@@ -17,29 +17,12 @@
 		"digit_xpos" "50"
 		"digit_ypos" "2"
 	}
-	HudHealth [$X360]
-	{
-		"fieldName"		"HudHealth"
-		"xpos"	"48"
-		"ypos"	"416"
-		"wide"	"115"
-		"tall"  "36"
-		"visible" "1"
-		"enabled" "1"
-
-		"PaintBackgroundType"	"2"
-		
-		"text_xpos" "8"
-		"text_ypos" "18"
-		"digit_xpos" "60"
-		"digit_ypos" "-1"
-	}
 	
 	HudSuit [$WIN32]
 	{
 		"fieldName"		"HudSuit"
-		"xpos"	"140"
-		"ypos"	"432"
+		"xpos"	"1120"  // just added a 1 here to get it out of the way ftm
+		"ypos"	"406"
 		"wide"	"108"
 		"tall"  "36"
 		"visible" "1"
@@ -52,29 +35,13 @@
 		"digit_xpos" "50"
 		"digit_ypos" "2"
 	}
-	HudSuit [$X360]
-	{
-		"fieldName"		"HudSuit"
-		"xpos"	"176"
-		"ypos"	"416"
-		"wide"	"117"
-		"tall"  "36"
-		"visible" "1"
-		"enabled" "1"
-
-		"PaintBackgroundType"	"2"
-
-		"text_xpos" "8"
-		"text_ypos" "18"
-		"digit_xpos" "50"
-		"digit_ypos" "-1"
-	}
+	
 
 	HudAmmo	[$WIN32]
 	{
 		"fieldName" "HudAmmo"
-		"xpos"	"r150"
-		"ypos"	"432"
+		"xpos"	"120"
+		"ypos"	"206"
 		"wide"	"136"
 		"tall"  "36"
 		"visible" "1"
@@ -84,37 +51,18 @@
 
 		"text_xpos" "8"
 		"text_ypos" "20"
-		"digit_xpos" "44"
+		"digit_xpos" "54"
 		"digit_ypos" "2"
 		"digit2_xpos" "98"
 		"digit2_ypos" "16"
 	}
-	HudAmmo	[$X360]
-	{
-		"fieldName" "HudAmmo"
-		"xpos"	"r208"
-		"ypos"	"416"
-		"wide"	"160"
-		"tall"  "36"
-		"visible" "1"
-		"enabled" "1"
-
-		"PaintBackgroundType"	"2"
-
-		"text_xpos" "8"
-		"text_ypos" "18"
-		"digit_xpos" "60"
-		"digit_ypos" "-1"
-		"digit2_xpos" "120"
-		"digit2_ypos" "14"
-	}
-
+	
 	HudAmmoSecondary	[$WIN32]
 	{
 		"fieldName" "HudAmmoSecondary"
-		"xpos"	"r76"
-		"ypos"	"432"
-		"wide"	"60"
+		"xpos"	"120"
+		"ypos"	"170"
+		"wide"	"136"
 		"tall"  "36"
 		"visible" "1"
 		"enabled" "1"
@@ -123,25 +71,8 @@
 
 		"text_xpos" "8"
 		"text_ypos" "22"
-		"digit_xpos" "36"
+		"digit_xpos" "54"
 		"digit_ypos" "2"
-	}
-	HudAmmoSecondary	[$X360]
-	{
-		"fieldName" "HudAmmoSecondary"
-		"xpos"	"r113"
-		"ypos"	"416"
-		"wide"	"65"
-		"tall"  "36"
-		"visible" "1"
-		"enabled" "1"
-
-		"PaintBackgroundType"	"2"
-
-		"text_xpos" "8"
-		"text_ypos" "22"
-		"digit_xpos" "36"
-		"digit_ypos" "-1"
 	}
 	
 	HudSuitPower	[$WIN32]
@@ -149,8 +80,8 @@
 		"fieldName" "HudSuitPower"
 		"visible" "1"
 		"enabled" "1"
-		"xpos"	"16"
-		"ypos"	"396"
+		"xpos"	"120"
+		"ypos"	"250"
 		"wide"	"102"
 		"tall"	"26"
 		
@@ -173,36 +104,7 @@
 
 		"PaintBackgroundType"	"2"
 	}
-	HudSuitPower	[$X360]
-	{
-		"fieldName" "HudSuitPower"
-		"visible" "1"
-		"enabled" "1"
-		"xpos"	"48"
-		"ypos"	"370"
-		"wide"	"102"
-		"tall"	"26"
-		
-		"AuxPowerLowColor" "255 100 0 220"
-		"AuxPowerHighColor" "255 220 0 220"
-		"AuxPowerDisabledAlpha" "70"
-
-		"BarInsetX" "8"
-		"BarInsetY" "19"
-		"BarWidth" "92"
-		"BarHeight" "5"
-		"BarChunkWidth" "6"
-		"BarChunkGap" "3"
-
-		"text_xpos" "8"
-		"text_ypos" "4"
-		"text2_xpos" "8"
-		"text2_ypos" "25"
-		"text2_gap" "12"
-
-		"PaintBackgroundType"	"2"
-	}
-
+	
 	HudPosture	[$WIN32]
 	{
 		"fieldName" 		"HudPosture"
@@ -235,11 +137,9 @@
 		"fieldName" "HudFlashlight"
 		"visible" "1"
 		"PaintBackgroundType"	"2"
-		"xpos"	"270"		[$WIN32]
-		"ypos"	"444"		[$WIN32]
-		"xpos_hidef"	"293"		[$X360]		// aligned to left
-		"xpos_lodef"	"c-18"		[$X360]		// centered in screen
-		"ypos"	"428"		[$X360]				
+		"xpos"	"240"		
+		"ypos"	"406"		
+		
 		"tall"  "24"
 		"wide"	"36"
 		"font"	"WeaponIconsSmall"

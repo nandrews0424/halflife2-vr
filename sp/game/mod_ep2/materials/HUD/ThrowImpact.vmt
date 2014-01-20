@@ -1,0 +1,9 @@
+"UnlitGeneric"
+{
+	"$basetexture" "HUD/ThrowImpact"
+	"$additive" 1
+	"$alphatest" 1
+	"$nolod" 1
+	"$translucent" 1
+	"$vertexalpha" 1
+}

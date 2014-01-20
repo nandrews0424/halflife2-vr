@@ -1,0 +1,52 @@
+"GameInfo"
+{
+	
+	game 			"Half-Life VR: Episode Two"
+	title 			"HALF-LIFE R"
+	title2			"== episode two =="
+
+	
+	developer		"Nathan Andrews"
+	developer_url	"http://www.halflife-vr.com/"
+	
+	type			singleplayer_only
+	icon           	"resource/hl2vr"
+	nomodels		0	
+
+	FileSystem
+	{
+		SteamAppId				243730		// This sets the app ID in Steam
+		
+		SearchPaths
+		{
+			game+mod+mod_write+default_write_path	|gameinfo_path|.		// Mod
+			gamebin									|gameinfo_path|bin		// Mod's Binaries
+
+			game_lv					|all_source_engine_paths|hl2/hl2_lv.vpk
+			game					|all_source_engine_paths|ep2/ep2_english.vpk
+			game					|all_source_engine_paths|ep2/ep2_pak.vpk
+			game					|all_source_engine_paths|episodic/ep1_english.vpk
+			game					|all_source_engine_paths|episodic/ep1_pak.vpk
+			game					|all_source_engine_paths|hl2/hl2_english.vpk
+			game					|all_source_engine_paths|hl2/hl2_pak.vpk
+			game					|all_source_engine_paths|hl2/hl2_textures.vpk
+			game					|all_source_engine_paths|hl2/hl2_sound_vo_english.vpk
+			game					|all_source_engine_paths|hl2/hl2_sound_misc.vpk
+			game					|all_source_engine_paths|hl2/hl2_misc.vpk
+			platform				|all_source_engine_paths|platform/platform_misc.vpk
+
+			// adding lost coast here for now...
+
+			game					|gameinfo_path|lostcoast_sound_vo_english.vpk
+			game					|gameinfo_path|lostcoast_pak.vpk
+			
+			game 					lostcoast/lostcoast_sound_vo_english.vpk
+			game					lostcoast/lostcoast_pak.vpk
+			
+
+			game					|all_source_engine_paths|episodic
+			game					|all_source_engine_paths|hl2
+			platform				|all_source_engine_paths|platform
+		}
+	}
+}

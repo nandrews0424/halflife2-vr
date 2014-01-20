@@ -23,7 +23,8 @@ Scheme
 	// controls use these to determine their settings
 	BaseSettings
 	{
-		"FgColor"			"255 220 0 100"
+		"DimFg"			"255 220 0 180"
+		"FgColor"			"255 220 0 180"
 		"FgColor_vrmode"	"255 220 0 200"
 		"BgColor"			"0 0 0 76"
 
@@ -364,6 +365,24 @@ Scheme
 				"custom"	"1"
 			}
 		}
+
+
+		VrHudNumbers
+		{
+			"1"
+			{
+				"name"		"HalfLife2"
+				"tall"		"64"
+				"weight"	"0"
+				"antialias" "1"
+				"additive"	"1"
+				"custom"	"1"
+			}
+		}
+
+
+
+
 		SquadIcon	[$X360]
 		{
 			"1"
@@ -632,7 +651,7 @@ Scheme
 		{
 			"1"
 			{
-				"name"  "HalfLife2"
+				"name"  "HLVREP2"
 				"tall"			"32"
 				"tall_hidef"	"46"
 				"weight" "0"
@@ -645,7 +664,7 @@ Scheme
 		{
 			"1"
 			{
-				"name"		"HalfLife2"
+				"name"		"HLVREP2"
 				"tall"		"128"
 				"weight"	"0"
 				"antialias" "1"
@@ -668,7 +687,7 @@ Scheme
 		{
 			"1"
 			{
-				"name"		"HalfLife2"
+				"name"		"HLVREP2"
 				"tall"		"48"
 				"weight"	"0"
 				"antialias" "1"
@@ -792,8 +811,9 @@ Scheme
 	// specifies all the custom (non-system) font files that need to be loaded to service the above described fonts
 	CustomFontFiles
 	{
-		"1"		"resource/HALFLIFE2.ttf"
-		"2"		"resource/HL2crosshairs.ttf"
+		"1"		"resource/HalfLife2.ttf"
+		"2"		"resource/HLVREP2.ttf"
+		"3"		"resource/HL2crosshairs.ttf"
 	}
 
 }

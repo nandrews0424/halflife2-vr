@@ -1,5 +1,26 @@
 "VGUI_Screens"
 {
+
+		
+
+	"health_screen"
+    {
+        // Ask: This is the vguiscreen attached to the RPG
+        // this type is defined in c_rpg_screen.cpp
+        "type"          "health_screen"
+
+        // These describe the dimensions of the screen *in pixels*
+        "pixelswide"    400
+        "pixelshigh"    300
+
+        // This is the name of the .res file to load up and apply to the vgui panel
+        "resfile"       "scripts/screens/health_screen.res"
+    }
+
+
+
+
+
 	// This name here can be referenced from within a 
 	// vgui_screen entity to select this vgui panel
 	"vgui_test_screen"
@@ -39,4 +60,7 @@
 		"acceptsinput"  0
 		"resfile"	"scripts/screens/slideshow_display_screen.res"
 	}
+
+
+
 }
