@@ -20,7 +20,7 @@ void ShellEjectCallback( const CEffectData &data )
 	IClientRenderable *pRenderable = data.GetRenderable();
 	if ( pRenderable )
 	{
-		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 0 );
+		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 0, true );
 	}
 }
 
@@ -35,7 +35,7 @@ void RifleShellEjectCallback( const CEffectData &data )
 	IClientRenderable *pRenderable = data.GetRenderable();
 	if ( pRenderable )
 	{
-		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 1 );
+		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 1, false );
 	}
 }
 
@@ -50,10 +50,48 @@ void ShotgunShellEjectCallback( const CEffectData &data )
 	IClientRenderable *pRenderable = data.GetRenderable();
 	if ( pRenderable )
 	{
-		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 2 );
+		tempents->EjectBrass( data.m_vOrigin, data.m_vAngles, pRenderable->GetRenderAngles(), 2, false );
 	}
 }
 
 DECLARE_CLIENT_EFFECT( "ShotgunShellEject", ShotgunShellEjectCallback );
 
 
+
+//-----------------------------------------------------------------------------
+// Purpose: Magnum shell ejection includes all 6 shells from the shell attach points
+//-----------------------------------------------------------------------------
+void MagnumShellEjectCallback( const CEffectData &data )^M
+{
+	// Use the gun angles to orient the shell^M
+	CBaseEntity* entity = data.GetEntity();
+	if ( !entity )
+		return;
+
+	CBaseEntity* pOwner = entity->GetOwnerEntity();
+	if ( !pOwner )
+		return;
+	
+	C_BasePlayer *pLocalPlayer = C_BasePlayer::GetLocalPlayer();
+	
+	if  ( pOwner != pLocalPlayer )
+		return;
+	
+	C_BaseViewModel* vm = pLocalPlayer->GetViewModel(0);
+	if ( !vm ) 
+		return;
+	
+	Vector attachOrigin;
+	QAngle attachAngles;
+	
+	char buf[32];
+	for ( int i = 1; i <= 6; i++ )
+	{
+		Q_snprintf( buf, sizeof( buf ), "Bullet%i", i ); 
+		int iAttachment = vm->LookupAttachment(buf);
+		vm->GetAttachment(iAttachment, attachOrigin, attachAngles);
+		tempents->EjectBrass( attachOrigin, attachAngles, vm->GetAbsAngles(), 3, true );
+	}
+}
+
+DECLARE_CLIENT_EFFECT( "MagnumShellEject", MagnumShellEjectCallback );
