@@ -3300,14 +3300,14 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 }
 
 extern ConVar muzzleflash_light;
-extern ConVar muzzleflash_light_use_dynamic;
+extern ConVar muzzleflash_use_dynamic;
 
 void C_BaseAnimating::ProcessMuzzleFlashEvent()
 {
 	// If we have an attachment, then stick a light on it.
 	if ( muzzleflash_light.GetBool() && m_Attachments.Count() > 0 )
 	{
-		if ( muzzleflash_light_use_dynamic.GetBool() )
+		if ( muzzleflash_use_dynamic.GetBool() )
 		{
 			Vector vAttachment, vAng, weaponForward;
 			QAngle angles;

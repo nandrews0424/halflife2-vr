@@ -1041,7 +1041,7 @@ void CC_Player_FragSwap( void )
 		}
 	}
 }
-static ConCommand fragswap("frag_swap", CC_Player_FragSwap, "Automatically swaps the current weapon for the frag grenade and back again." 
+static ConCommand fragswap("frag_swap", CC_Player_FragSwap, "Automatically swaps the current weapon for the frag grenade and back again.");
 
 
 

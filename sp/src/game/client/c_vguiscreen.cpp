@@ -159,8 +159,8 @@ void C_VGuiScreen::GetAimEntOrigin( IClientEntity *pAttachedTo, Vector *pOrigin,
 {
 	C_BaseEntity *pEnt = pAttachedTo->GetBaseEntity();
 
-	const char* panelName = PanelName();^M
-     vgui::Panel panel = m_PanelWrapper.GetPanel();
+	const char* panelName = PanelName();
+    vgui::Panel panel = m_PanelWrapper.GetPanel();
              
      if ( Q_strcmp(panelName, "health_screen") == 0 )
      {

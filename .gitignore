@@ -65,3 +65,13 @@ config.cfg
 # shader files
 *.tmp
 
+GameState.txt
+server_blacklist.txt
+voice_ban.dt
+stats.txt
+sp/game/bin
+modelsounds.cache
+sound.cache
+sp/game/mod_hl2/save
+sp/src/vgui2/vgui_controls/generated_proto
+

@@ -53,6 +53,7 @@
 #include "clientmode_shared.h"
 #include "sourcevr/isourcevirtualreality.h"
 #include "client_virtualreality.h"
+#include "vr/vr_controller.h"
 
 #ifdef PORTAL
 //#include "C_Portal_Player.h"
@@ -3182,7 +3183,7 @@ void CViewRender::DrawMonitors( const CViewSetup &cameraView )
 
 
 
-void CViewRender::DrawScope( const CViewSetup &viewSet )^M
+void CViewRender::DrawScope( const CViewSetup &viewSet )
 {
 	C_BasePlayer *localPlayer = C_BasePlayer::GetLocalPlayer();
 
@@ -3234,7 +3235,7 @@ void CViewRender::DrawScope( const CViewSetup &viewSet )^M
 	SafeRelease( pSkyView );
 
 	ViewDrawScene( false, SKYBOX_3DSKYBOX_VISIBLE, scopeView, VIEW_CLEAR_DEPTH, VIEW_MONITOR );
-	render->PopView( m_Frustum );^M
+	render->PopView( m_Frustum );
 }
 
 

@@ -760,7 +760,6 @@ bool CClientVirtualReality::OverrideStereoView( CViewSetup *pViewMiddle, CViewSe
 		AngleMatrix(m_PlayerTorsoAngle, m.As3x4());
 		MatrixRotate(m, Vector(0,1,0), 50.f);
 		MatrixAngles( m.As3x4(), HudAngles );
-		HudUpCorrection = g_pSourceVR->GetHudUpCorrection();
 		AngleMatrix ( HudAngles, m_WorldFromHud.As3x4() );
 		               
 		m_WorldFromHud.SetTranslation ( m_PlayerViewOrigin );
@@ -1075,7 +1074,7 @@ bool CClientVirtualReality::CurrentlyZoomed()
 //			fixed at this point until the game tells us something 
 //			different.
 // --------------------------------------------------------------------
-void CClientVirtualReality::OverrideTorsoTransform( const Vector & position, const QAngle & angles )
+void CClientVirtualReality::OverrideTorsoTransform( const Vector & position, QAngle & angles )
 {
 
 	// If first time hitting this method (i.e. entering a vehicle etc) reset home position

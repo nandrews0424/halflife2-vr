@@ -61,7 +61,7 @@ DECLARE_CLIENT_EFFECT( "ShotgunShellEject", ShotgunShellEjectCallback );
 //-----------------------------------------------------------------------------
 // Purpose: Magnum shell ejection includes all 6 shells from the shell attach points
 //-----------------------------------------------------------------------------
-void MagnumShellEjectCallback( const CEffectData &data )^M
+void MagnumShellEjectCallback( const CEffectData &data )
 {
 	// Use the gun angles to orient the shell^M
 	CBaseEntity* entity = data.GetEntity();
