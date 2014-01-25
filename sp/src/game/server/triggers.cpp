@@ -1314,9 +1314,11 @@ private:
 	static int ComputeEntitySaveFlags( CBaseEntity *pEntity );
 
 private:
-	char m_szMapName[cchMapNameMost];		// trigger_changelevel only:  next map
+	char m_szMapName[cchMapNameMost];			// trigger_changelevel only:  next map
 	char m_szLandmarkName[cchMapNameMost];		// trigger_changelevel only:  landmark on next map
 	bool m_bTouched;
+
+	void CancelDelayedTrigger( void );
 	bool m_inDelayedTrigger;
 	int m_delayUntil;
 
@@ -1599,17 +1601,32 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 	int transitionState = InTransitionVolume(pPlayer, m_szLandmarkName);
 
 	// VR TODO: level transition bug from here... continuing even tho player isn't in transition volume, we should reset here instead... 
-	if ( transitionState == TRANSITION_VOLUME_SCREENED_OUT && !isDelayedChangeLevel )
+	if ( transitionState == TRANSITION_VOLUME_SCREENED_OUT )
 	{
 		DevMsg( 2, "Player isn't in the transition volume %s, aborting\n", m_szLandmarkName );
+		
+		if ( isDelayedChangeLevel ) 
+		{
+			Warning("Delayed trigger out of transition volume\n");
+			CancelDelayedTrigger();
+		}
+		
 		return;
 	}
 
 	// look for a landmark entity		
 	pLandmark = FindLandmark( m_szLandmarkName );
 
-	if ( !pLandmark && !isDelayedChangeLevel )
+	if ( !pLandmark )
+	{
+		if ( isDelayedChangeLevel ) 
+		{
+			Warning("No landmark found for delayed trigger\n");
+			CancelDelayedTrigger();
+		}
+		
 		return;
+	}
 
 	// no transition volumes, check PVS of landmark
 	if ( transitionState == TRANSITION_VOLUME_NOT_FOUND )
@@ -1623,14 +1640,14 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 			pPlayer->CollisionProp()->WorldSpaceSurroundingBounds( &vecSurroundMins, &vecSurroundMaxs );
 			bool playerInPVS = engine->CheckBoxInPVS( vecSurroundMins, vecSurroundMaxs, pvs, sizeof( pvs ) );
 
-			//Assert( playerInPVS );
-			if ( !playerInPVS && !isDelayedChangeLevel )
+			if ( !playerInPVS )
 			{
 				Warning( "Player isn't in the landmark's (%s) PVS, aborting\n", m_szLandmarkName );
-#ifndef HL1_DLL
-				// HL1 works even with these errors!
-				return;
-#endif
+				if ( isDelayedChangeLevel )
+				{
+					CancelDelayedTrigger();
+					return;
+				}
 			}
 		}
 	}
@@ -1703,8 +1720,12 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 		return;
 	}
 
+
+	// If player hasn't already tripped the level change countdown, do so now
 	if ( !m_inDelayedTrigger )
 	{
+
+		// Vehicles move through their transition volumes too fast for slow fadeout
 		if ( !pPlayer->IsInAVehicle() )
 		{
 			m_inDelayedTrigger = true;
@@ -1721,6 +1742,18 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 		}
 	}
 }
+
+
+// Cancels in the case that when actual level change is attempted the player has left the transition volume
+// this allows it to be retriggered if touched again.  Attempting a load outside the transition volume
+// seems to cause the weaponless transition to the broken next level
+void CChangeLevel::CancelDelayedTrigger()
+{
+	m_inDelayedTrigger = false;
+	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
+	engine->ClientCommand(pPlayer->edict(), "fadein .1");
+}
+
 
 
 // Add a transition to the list, but ignore duplicates 
