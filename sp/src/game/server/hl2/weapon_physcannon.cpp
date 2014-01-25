@@ -714,8 +714,8 @@ QAngle CGrabController::TransformAnglesFromPlayerSpace( const QAngle &anglesIn, 
 	{
 		matrix3x4_t test;
 		QAngle angleTest = pPlayer->EyeAngles();
-		if ( !m_bHands )
-			angleTest.x = 0;
+		// if ( !m_bHands )
+		angleTest.x = 0;
 
 		AngleMatrix( angleTest, test );
 		return TransformAnglesToWorldSpace( anglesIn, test );
@@ -826,7 +826,7 @@ void CGrabController::AttachEntity( CBasePlayer *pPlayer, CBaseEntity *pEntity, 
 	m_bAllowObjectOverhead = IsObjectAllowedOverhead( pEntity );
 
 	// noclip the player and picked up entity
-	PhysDisableEntityCollisions(pEntity, m_pControllingPlayer);
+	// PhysDisableEntityCollisions(pEntity, m_pControllingPlayer);
 	
 }
 
@@ -851,7 +851,7 @@ void CGrabController::DetachEntity( bool bClearVelocity )
 	if ( pEntity )
 	{
 		// restore player and entity collisions
-		PhysEnableEntityCollisions(pEntity, m_pControllingPlayer);
+		// PhysEnableEntityCollisions(pEntity, m_pControllingPlayer);
 		
 		// Restore the LS blocking state
 		pEntity->SetBlocksLOS( m_bCarriedEntityBlocksLOS );
@@ -1053,7 +1053,7 @@ void CPlayerPickupController::Init( CBasePlayer *pPlayer, CBaseEntity *pObject )
 	// done so I'll go across level transitions with the player
 	SetParent( pPlayer );
 	m_grabController.SetIgnorePitch( true );
-	m_grabController.SetHandPickup( true );
+	// m_grabController.SetHandPickup( true );
 	m_grabController.SetAngleAlignment( DOT_30DEGREE );
 
 	m_pPlayer = pPlayer;
@@ -2800,6 +2800,9 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	Vector start = pPlayer->Weapon_ShootPosition();
 
 		
+	// TODO: disabling hand specific pickup logic as it's not actually better from a playability perspective with it's 
+	// current implementation.  Maybe revisit in the future...	
+	/*
 	// we're just using our hands here, so push it out a bit to keep from contacting player but allow normal hand control
 	if ( m_bHands ) {
 
@@ -2830,7 +2833,7 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 		
 		SetTargetPosition( end - offset, angles );
 		return true;
-	}
+	} */
 	
 	// Add the prop's distance offset
 	distance += m_flDistanceOffset;

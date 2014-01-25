@@ -84,6 +84,8 @@ void MagnumShellEjectCallback( const CEffectData &data )
 	Vector attachOrigin;
 	QAngle attachAngles;
 	
+	Msg("TODO: About to eject 6 shells from the magnum");
+
 	char buf[32];
 	for ( int i = 1; i <= 6; i++ )
 	{

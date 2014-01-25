@@ -2417,6 +2417,7 @@ void CTempEnts::LevelInit()
 	m_pShells[0] = (model_t *) engine->LoadModel( "models/weapons/shell.mdl" );
 	m_pShells[1] = (model_t *) engine->LoadModel( "models/weapons/rifleshell.mdl" );
 	m_pShells[2] = (model_t *) engine->LoadModel( "models/weapons/shotgun_shell.mdl" );
+	m_pShells[3] = (model_t *) engine->LoadModel( "models/weapons/Python_shell.mdl" );
 #endif
 
 #if defined( HL1_CLIENT_DLL )

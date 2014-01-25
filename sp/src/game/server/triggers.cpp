@@ -1383,10 +1383,16 @@ void CChangeLevel::Think()
 {
 	BaseClass::Think();
 
-	if ( m_inDelayedTrigger && gpGlobals->curtime > m_delayUntil )
+	if ( m_inDelayedTrigger )
 	{
-		ChangeLevelNow(UTIL_GetLocalPlayer());
-		return;
+		if ( gpGlobals->curtime >= m_delayUntil )
+		{
+			ChangeLevelNow(UTIL_GetLocalPlayer());
+		}
+		else 
+		{
+			SetNextThink(gpGlobals->curtime + .1f);
+		}
 	}
 }
 
@@ -1729,8 +1735,8 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 		if ( !pPlayer->IsInAVehicle() )
 		{
 			m_inDelayedTrigger = true;
-			m_delayUntil = gpGlobals->curtime + 3.f;
-			engine->ClientCommand(pPlayer->edict(), "fadeout 2");
+			m_delayUntil = gpGlobals->curtime + 1.5f;
+			engine->ClientCommand(pPlayer->edict(), "fadeout 1");
 			SetNextThink( m_delayUntil + .2f );
 		}
 		else 
@@ -1749,7 +1755,9 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 // seems to cause the weaponless transition to the broken next level
 void CChangeLevel::CancelDelayedTrigger()
 {
+	m_bTouched = false;
 	m_inDelayedTrigger = false;
+	m_delayUntil = 0;
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
 	engine->ClientCommand(pPlayer->edict(), "fadein .1");
 }

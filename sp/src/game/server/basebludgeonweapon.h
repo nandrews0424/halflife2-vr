@@ -51,9 +51,11 @@ private:
 
 	// VR motion controller swing logic
 	bool			CheckSwingMotion( void );
-	void			MotionSwing( const Vector &pos, const Vector &dir, float velocity );
+	void			MotionSwing(const Vector &aimDirection, const Vector &pos, const Vector &dir, float velocity );
 	float			m_flNextMotionCheck;
+	float			m_flLastMotionCheck;
 	Vector			m_prevMotionPosition;
+	
 
 	bool			ImpactWater( const Vector &start, const Vector &end );
 	void			Swing( int bIsSecondary );
