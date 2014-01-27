@@ -1,0 +1,7 @@
+"LightmappedGeneric"
+{
+	"$basetexture" "Decals/HLVR_spray"
+	"$decal" 1
+	"$decalscale" 0.2
+	"$translucent" 1
+}
