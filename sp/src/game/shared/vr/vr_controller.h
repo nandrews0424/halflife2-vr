@@ -42,7 +42,7 @@ public:
 	void	getEyeToWeaponOffset(Vector& offset);
 
 	float	getHudPanelAlpha(const Vector& hudPanelForward, const Vector& eyesForward, float fadeFactor);
-
+	bool	showMenuPanel( void );
 
 protected:
 	bool	_initialized;
@@ -62,14 +62,15 @@ protected:
 
 	unsigned int _counter;
  
-	matrix3x4_t getTrackedTorso();
-	matrix3x4_t getTrackedRightHand(bool includeCalibration=true);
-	void		calibrate(VMatrix& torsoMatrix);
-	bool		writeDebug();
-	
+	matrix3x4_t getTrackedTorso( void );
+	matrix3x4_t getTrackedRightHand( bool includeCalibration=true );
+	void		calibrate( VMatrix& torsoMatrix );
+	bool		writeDebug( void );
+
 
 	// sixense related hooks
 	bool		_sixenseInitialized;
+	bool		_sixenseCalibrationNeeded;
 	MotionControlMode_t _controlMode;
 	bool		_strafeModifier;
 	bool		_rightBumperPressed;
@@ -80,6 +81,8 @@ protected:
 	struct		_sixenseAllControllerData *_sixenseControllerData;
 	class		sixenseUtils::IButtonStates *_leftButtonStates, *_rightButtonStates;
 	class		sixenseUtils::IControllerManager *_controllerManager;
+	int			_leftControllerIndex;
+	int			_sixenseControllerIndex[2];
 
 	void		sixenseInitialize();
 	void		sixenseUpdate();

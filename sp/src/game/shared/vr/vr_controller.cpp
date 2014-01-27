@@ -113,6 +113,7 @@ MotionTracker::MotionTracker()
 	_strafeModifier = false;
 	_rightBumperPressed = false;
 	_motionTracker = this;
+	_sixenseCalibrationNeeded = false;
 	_previousHandPosition.Init();
 	_previousHandAngle.Init();
 
@@ -519,6 +520,18 @@ void MotionTracker::sixenseUpdate()
 	sixenseControllerData leftController = getControllerData(sixenseUtils::ControllerManager::P1L);
 	sixenseControllerData rightController = getControllerData(sixenseUtils::ControllerManager::P1R);
 
+	if ( leftController.which_hand == 0 || rightController.which_hand == 0 )
+	{
+		if ( writeDebug() )
+			Warning("Place your hydras on the base station!\n");
+		
+		_sixenseCalibrationNeeded = true;
+	}
+	else 
+	{
+		_sixenseCalibrationNeeded = false;		
+	}
+
 	_leftButtonStates->update( &leftController );
 	_rightButtonStates->update( &rightController );
 	
@@ -636,8 +649,14 @@ sixenseControllerData MotionTracker::getControllerData(sixenseUtils::IController
 {
 	int idx = _controllerManager->getIndex( which_controller );
 
+
+	// TODO: now that this is detected, need a better way to show it....
+	
 	if ( idx < 0 || idx > 1 )
 	{
+		if ( writeDebug() )
+			Warning("Place your hydra controllers on the dock, sixense calibration needed! \n");
+		
 		idx = (int) which_controller;
 	}
 
@@ -649,7 +668,7 @@ sixenseControllerData MotionTracker::getControllerData(sixenseUtils::IController
 
 
 bool MotionTracker::writeDebug() {
-	return (_counter % 60) == 0;
+	return (_counter % 120) == 0;
 }
 
 
@@ -658,4 +677,10 @@ float MotionTracker::getHudPanelAlpha(const Vector& hudPanelForward, const Vecto
 	float dot = hudPanelForward.Dot(eyesForward);
 	if ( dot > 0 ) return 0.f;
 	return pow(fabs(dot), fadePow);
+}
+
+
+bool MotionTracker::showMenuPanel()
+{
+	return _sixenseCalibrationNeeded;
 }

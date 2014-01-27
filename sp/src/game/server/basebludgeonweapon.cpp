@@ -461,7 +461,7 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 
 	Vector up,right;
 	VectorVectors(forward, right, up);
-	Vector swingEnd = swingStart + forward*18.5 + up*-2; // down a touch to adjust for rotational arc the head travels on when player swings at wrist (seems to be most common)
+	Vector swingEnd = swingStart + forward*19 + up*-1; // down a touch to adjust for rotational arc the head travels on when player swings at wrist (seems to be most common)
 	
 	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );
 	Activity nHitActivity = ACT_VM_HITCENTER;

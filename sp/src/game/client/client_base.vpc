@@ -179,6 +179,8 @@ $Project
 		$File   "vgui_health_screen.cpp"
 		$File   "tne_RenderTargets.h"
 		$File   "tne_RenderTargets.cpp"
+		$File	"vgui_vr_panel.h"
+		$File	"vgui_vr_panel.cpp"
 
 		$File	"hl2\C_Func_Monitor.cpp"
 		$File	"geiger.cpp"
