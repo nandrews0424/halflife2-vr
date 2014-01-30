@@ -117,7 +117,7 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 
 
 #define MOTION_CHECK_RATE .01
-#define MOTION_SWING_THRESHOLD 50
+#define MOTION_SWING_THRESHOLD 40
 
 bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
 {
@@ -335,14 +335,14 @@ bool CBaseHLBludgeonWeapon::ImpactWater( const Vector &start, const Vector &end 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CBaseHLBludgeonWeapon::ImpactEffect( trace_t &traceHit )
+void CBaseHLBludgeonWeapon::ImpactEffect( trace_t &traceHit, float scale )
 {
 	// See if we hit water (we don't do the other impact effects in this case)
 	if ( ImpactWater( traceHit.startpos, traceHit.endpos ) )
 		return;
 
 	//FIXME: need new decals
-	UTIL_ImpactTrace( &traceHit, DMG_CLUB );
+	UTIL_ImpactTrace( &traceHit, DMG_CLUB, NULL, scale );
 }
 
 
@@ -471,14 +471,15 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 	triggerInfo.SetDamagePosition( traceHit.startpos );
 	triggerInfo.SetDamageForce( forward );
 
-	float damageScale = Clamp((velocity-100) / 100.f, .25f, 1.5f);
+	// calculate a damage scale to use for effects etc...
+	float damageScale = Clamp((velocity-80) / 120.f, .175f, 1.5f);
 	triggerInfo.ScaleDamage( damageScale );
 	triggerInfo.ScaleDamageForce( damageScale );
 	TraceAttackToTriggers( triggerInfo, traceHit.startpos, traceHit.endpos, forward );
 
 	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 
-	float motionFireRate = .45f;
+	float motionFireRate = .35f;
 	
 	if ( traceHit.fraction == 1.0f )
 	{
@@ -527,7 +528,7 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 		}
 
 		// Apply an impact effect
-		ImpactEffect( traceHit );
+		ImpactEffect( traceHit, Clamp(damageScale, 0.f, 1.f) );
 		SendWeaponAnim( ACT_VM_HITDYNAMIC );
 
 		//Setup our next attack times

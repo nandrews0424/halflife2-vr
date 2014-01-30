@@ -663,7 +663,7 @@ void CBaseEntity::DecalTrace( trace_t *pTrace, char const *decalName )
 //-----------------------------------------------------------------------------
 // Purpose: Base handling for impacts against entities
 //-----------------------------------------------------------------------------
-void CBaseEntity::ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName )
+void CBaseEntity::ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName, float scale )
 {
 	VPROF( "CBaseEntity::ImpactTrace" );
 	Assert( pTrace->m_pEnt );
@@ -677,6 +677,8 @@ void CBaseEntity::ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCu
 	data.m_nSurfaceProp = pTrace->surface.surfaceProps;
 	data.m_nDamageType = iDamageType;
 	data.m_nHitBox = pTrace->hitbox;
+	data.m_flScale = scale;
+
 #ifdef CLIENT_DLL
 	data.m_hEntity = ClientEntityList().EntIndexToHandle( pEntity->entindex() );
 #else
