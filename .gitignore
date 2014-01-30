@@ -75,3 +75,5 @@ sound.cache
 sp/game/mod_hl2/save
 sp/src/vgui2/vgui_controls/generated_proto
 
+sp/game/installer/output
+
