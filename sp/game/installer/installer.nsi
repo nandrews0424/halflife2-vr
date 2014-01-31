@@ -1,5 +1,5 @@
 !include "MUI2.nsh"
-!define VERSION '1.2.0'
+!define VERSION '1.3.0b'
 
 Name "Half-Life VR"
 
@@ -42,7 +42,10 @@ Section ""
 	
 	SetOutPath $INSTDIR\halflife-vr-ep1
 	File /r ..\mod_episodic\*
-	
+
+	SetOutPath $INSTDIR\halflife-vr-ep2
+	File /r ..\mod_ep2\*
+		
 SectionEnd
 
 Function .onInit

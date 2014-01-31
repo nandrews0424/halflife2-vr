@@ -1409,7 +1409,9 @@ Vector UTIL_RandomBloodVector( void )
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-void UTIL_ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName )
+
+
+void UTIL_ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName, float scale )
 {
 	CBaseEntity *pEntity = pTrace->m_pEnt;
 
@@ -1420,8 +1422,15 @@ void UTIL_ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpa
 	if ( pTrace->fraction == 1.0 )
 		return;
 
-	pEntity->ImpactTrace( pTrace, iDamageType, pCustomImpactName );
+	pEntity->ImpactTrace( pTrace, iDamageType, pCustomImpactName, scale );
 }
+
+void UTIL_ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName )
+{
+	UTIL_ImpactTrace( pTrace, iDamageType, pCustomImpactName, 1.f );
+}
+
+
 
 /*
 ==============

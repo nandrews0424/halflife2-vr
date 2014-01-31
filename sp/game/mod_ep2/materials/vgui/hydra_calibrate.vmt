@@ -1,0 +1,5 @@
+UnlitGeneric
+{
+	$basetexture vgui/hydra_calibrate
+	$translucent 1
+}

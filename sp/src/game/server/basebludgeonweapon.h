@@ -45,7 +45,7 @@ public:
 	virtual	int		WeaponMeleeAttack1Condition( float flDot, float flDist );
 
 protected:
-	virtual	void	ImpactEffect( trace_t &trace );
+	virtual	void	ImpactEffect( trace_t &trace, float scale = 1.f );
 
 private:
 
