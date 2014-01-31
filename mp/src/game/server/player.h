@@ -18,6 +18,7 @@
 #include "hintsystem.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "util_shared.h"
+#include "laser_crosshair.h"
 
 #if defined USES_ECON_ITEMS
 #include "game_item_schema.h"
@@ -333,9 +334,15 @@ public:
 
 	int						GetBonusProgress() const { return m_iBonusProgress; }
 	int						GetBonusChallenge() const { return m_iBonusChallenge; }
+	
+	Vector 					m_eyeOffset;
+	Vector 					m_eyeToWeaponOffset;
+	QAngle 					m_torsoAngles;
 
 	virtual Vector			EyePosition( );			// position of eyes
 	const QAngle			&EyeAngles( );
+	Vector 					EyeToWeaponOffset();
+	QAngle 					TorsoAngles( );
 	void					EyePositionAndVectors( Vector *pPosition, Vector *pForward, Vector *pRight, Vector *pUp );
 	virtual const QAngle	&LocalEyeAngles();		// Direction of eyes
 	void					EyeVectors( Vector *pForward, Vector *pRight = NULL, Vector *pUp = NULL );
@@ -821,6 +828,9 @@ private:
 public:
 	
 
+	void 			UpdateLaserCrosshair(); 		// called when the weapons change so laser color / opacity / size can be adjusted^M
+	void 			SetLaserCrosshairPosition(); 	// called per frame so position can be set^
+
 
 	// Used by gamemovement to check if the entity is stuck.
 	int m_StuckLast;
@@ -1059,6 +1069,7 @@ protected:
 	float					m_flStepSoundTime;	// time to check for next footstep sound
 
 	bool					m_bAllowInstantSpawn;
+	CLaserCrosshair*  		m_laserCrosshair;
 
 #if defined USES_ECON_ITEMS
 	// Wearables

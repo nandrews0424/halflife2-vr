@@ -45,9 +45,18 @@ public:
 	virtual	int		WeaponMeleeAttack1Condition( float flDot, float flDist );
 
 protected:
-	virtual	void	ImpactEffect( trace_t &trace );
+	virtual	void	ImpactEffect( trace_t &trace, float scale = 1.f );
 
 private:
+
+	// VR motion controller swing logic
+	bool			CheckSwingMotion( void );
+	void			MotionSwing(const Vector &aimDirection, const Vector &pos, const Vector &dir, float velocity );
+	float			m_flNextMotionCheck;
+	float			m_flLastMotionCheck;
+	Vector			m_prevMotionPosition;
+	
+
 	bool			ImpactWater( const Vector &start, const Vector &end );
 	void			Swing( int bIsSecondary );
 	void			Hit( trace_t &traceHit, Activity nHitActivity, bool bIsSecondary );

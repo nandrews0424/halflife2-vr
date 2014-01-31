@@ -825,7 +825,7 @@ public:
 
 	virtual char const *			DamageDecal( int bitsDamageType, int gameMaterial );
 	virtual void					DecalTrace( trace_t *pTrace, char const *decalName );
-	virtual void					ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName );
+	virtual void					ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCustomImpactName, float scale = 1.f );
 
 	virtual bool					ShouldPredict( void ) { return false; };
 	// interface function pointers

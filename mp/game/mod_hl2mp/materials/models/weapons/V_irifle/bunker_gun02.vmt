@@ -1,0 +1,13 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "Models/weapons/V_irifle/bunker_gun02"
+	"$surfaceprop" "metal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[ .5 .5 .5]"
+	"$envmapmask" "Models/props_combine/bunker_gun01_mask"
+	"$selfillum" 1
+}
+
+
+
+

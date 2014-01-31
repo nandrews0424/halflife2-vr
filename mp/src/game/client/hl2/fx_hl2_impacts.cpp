@@ -109,7 +109,11 @@ void ImpactCallback( const CEffectData &data )
 		PerformCustomEffects( vecOrigin, tr, vecShotDir, iMaterial, 1.0 );
 	}
 
-	PlayImpactSound( pEntity, tr, vecOrigin, nSurfaceProp );
+	float volume = 1.f;
+	if ( data.m_flScale >= 0.f && data.m_flScale <= 1.f)
+		volume = data.m_flScale;
+	
+	PlayImpactSound( pEntity, tr, vecOrigin, nSurfaceProp, volume );
 }
 
 DECLARE_CLIENT_EFFECT( "Impact", ImpactCallback );

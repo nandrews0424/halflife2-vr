@@ -11,7 +11,7 @@ WeaponData
 	"bucket_position"		"1"
 
 	"clip_size"			"30"
-	"default_clip"			"60"
+	"default_clip"			"30"
 
 	"clip2_size"			"-1"
 	"default_clip2"			"-1"
@@ -19,9 +19,22 @@ WeaponData
 	"primary_ammo"			"AR2"
 	"secondary_ammo"		"AR2AltFire"
 
-	"weight"			"5"
+	"weight"				"5"
 	"item_flags"			"0"
-	"damage"			"11"
+
+	weaponHudOffset
+	{
+		"forward"		"-2.5"
+		"right"			"-13"
+	}
+
+
+	laserCrosshair
+	{
+		"scale"			"1"
+		"a"				"230"
+	}
+
 
 	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
 	SoundData

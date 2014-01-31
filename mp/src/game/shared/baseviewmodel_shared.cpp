@@ -13,6 +13,7 @@
 #include "prediction.h"
 #include "client_virtualreality.h"
 #include "sourcevr/isourcevirtualreality.h"
+#include "vr/vr_controller.h"
 #else
 #include "vguiscreen.h"
 #endif
@@ -136,10 +137,28 @@ void CBaseViewModel::SpawnControlPanels()
 
 	MDLCACHE_CRITICAL_SECTION();
 
+	CBaseAnimating *pEntityToSpawnOn = this;
+	Assert( pEntityToSpawnOn );
+
+	// just attache the health_screen for now
+	CVGuiScreen *pScreen = CreateVGuiScreen( "vgui_screen", "health_screen", pEntityToSpawnOn, this, 0);
+
+	pScreen->ChangeTeam( GetTeamNumber() );
+	pScreen->SetActualSize( 6.f, 4.5 );
+	pScreen->SetActive( false );
+	pScreen->MakeVisibleOnlyToTeammates( false );
+	pScreen->SetAttachedToViewModel( true );
+	pScreen->SetTransparency( true );
+	pScreen->SetActive( true );
+	int nScreen = m_hScreens.AddToTail( );
+	m_hScreens[nScreen].Set( pScreen );
+
+	return;
+
 	// FIXME: Deal with dynamically resizing control panels?
 
 	// If we're attached to an entity, spawn control panels on it instead of use
-	CBaseAnimating *pEntityToSpawnOn = this;
+	
 	char *pOrgLL = "controlpanel%d_ll";
 	char *pOrgUR = "controlpanel%d_ur";
 	char *pAttachmentNameLL = pOrgLL;
@@ -164,7 +183,6 @@ void CBaseViewModel::SpawnControlPanels()
 	}
 	*/
 
-	Assert( pEntityToSpawnOn );
 
 	// Lookup the attachment point...
 	int nPanel;
@@ -395,29 +413,29 @@ void CBaseViewModel::CalcViewModelView( CBasePlayer *owner, const Vector& eyePos
 	if ( pWeapon != NULL )
 	{
 #if defined( CLIENT_DLL )
-		if ( !prediction->InPrediction() )
+		if ( !prediction->InPrediction() && ~g_MotionTracker()->isTrackingWeapon() )
 #endif
 		{
 			// add weapon-specific bob 
-			pWeapon->AddViewmodelBob( this, vmorigin, vmangles );
+			// pWeapon->AddViewmodelBob( this, vmorigin, vmangles );
 #if defined ( CSTRIKE_DLL )
-			CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
+			// CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
 #endif
 		}
 	}
 	// Add model-specific bob even if no weapon associated (for head bob for off hand models)
-	AddViewModelBob( owner, vmorigin, vmangles );
+	// AddViewModelBob( owner, vmorigin, vmangles );
 #if !defined ( CSTRIKE_DLL )
 	// This was causing weapon jitter when rotating in updated CS:S; original Source had this in above InPrediction block  07/14/10
 	// Add lag
-	CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
+	// CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
 #endif
 
 #if defined( CLIENT_DLL )
 	if ( !prediction->InPrediction() )
 	{
 		// Let the viewmodel shake at about 10% of the amplitude of the player's view
-		vieweffects->ApplyShake( vmorigin, vmangles, 0.1 );	
+		// vieweffects->ApplyShake( vmorigin, vmangles, 0.1 );	
 	}
 #endif
 

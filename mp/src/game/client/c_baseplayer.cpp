@@ -851,11 +851,9 @@ void C_BasePlayer::PostDataUpdate( DataUpdateType_t updateType )
 		}
 		SetLocalAngles( angles );
 
-		// VR - set baseplayer properties
 		g_MotionTracker()->getEyeToWeaponOffset(m_eyeToWeaponOffset);
-		g_MotionTracker()->getViewOffset(m_eyeOffset);
-		m_torsoAngles = g_MotionTracker()->getTorsoAngles();
-
+ 		g_MotionTracker()->getViewOffset(m_eyeOffset);
+ 		m_torsoAngles = g_MotionTracker()->getTorsoAngles();
 
 		if ( !m_bWasFreezeFraming && GetObserverMode() == OBS_MODE_FREEZECAM )
 		{
@@ -2372,17 +2370,13 @@ bool C_BasePlayer::IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredC
 //-----------------------------------------------------------------------------
 float C_BasePlayer::GetFOV( void )
 {
-	// Allow our vehicle to override our FOV if it's currently at the default FOV.
-
-	
-
 	IClientVehicle *pVehicle = GetVehicle();
 	if ( pVehicle )
 	{
 		CacheVehicleView();
 	}
-	
-	GetDefaultFOV();
+
+	return GetDefaultFOV();
 }
 
 void RecvProxy_LocalVelocityX( const CRecvProxyData *pData, void *pStruct, void *pOut )

@@ -28,6 +28,10 @@
 #include "vgui_bitmappanel.h"
 #include "filesystem.h"
 #include "iinput.h"
+#include "view_shared.h"
+#include "iviewrender.h"
+#include "client_virtualreality.h"
+#include "vr/vr_controller.h"
 
 #include <vgui/IInputInternal.h>
 extern vgui::IInputInternal *g_InputInternal;
@@ -154,6 +158,43 @@ void FormatViewModelAttachment( Vector &vOrigin, bool bInverse );
 void C_VGuiScreen::GetAimEntOrigin( IClientEntity *pAttachedTo, Vector *pOrigin, QAngle *pAngles )
 {
 	C_BaseEntity *pEnt = pAttachedTo->GetBaseEntity();
+
+	const char* panelName = PanelName();
+    vgui::Panel panel = m_PanelWrapper.GetPanel();
+             
+     if ( Q_strcmp(panelName, "health_screen") == 0 )
+     {
+		QAngle weapAngles = pEnt->GetAbsAngles();
+		Vector weapForward, weapRight, weapUp;
+		AngleVectors(weapAngles, &weapForward, &weapRight, &weapUp);
+			CBasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+		if ( pPlayer == NULL )
+			return;
+
+		C_BaseViewModel *vm = pPlayer->GetViewModel(0);
+		if ( vm == NULL )
+			return;             
+
+		QAngle vmAngles;                        
+		Vector vmOrigin;
+
+		int iAttachment = vm->LookupAttachment( "hud_right" );
+		vm->GetAttachment( iAttachment, vmOrigin, vmAngles);
+
+
+		VMatrix worldFromPanel;
+		AngleMatrix(vmAngles, worldFromPanel.As3x4());
+		MatrixRotate(worldFromPanel, Vector(1, 0, 0), 180.f);
+		MatrixRotate(worldFromPanel, Vector(0, 1, 0), 90.f);
+		MatrixAngles(worldFromPanel.As3x4(), *pAngles);
+
+		Vector forward,up,right;
+		AngleVectors(vmAngles, &right,&up,&forward); // these are not the normal orientations due to the rotations above
+
+		*pOrigin = vmOrigin + up*-1 + forward*-5;             
+		return;
+	}
+    
 	if (pEnt && (m_nAttachmentIndex > 0))
 	{
 		{

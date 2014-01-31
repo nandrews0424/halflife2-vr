@@ -17,8 +17,11 @@ WeaponData
 
 	"weight"		"6"
 	"item_flags"		"0"
-
-	"damage"		"100"
+	
+	weaponHudOffset
+	{
+		"forward"		"-3.5"
+	}
 
 	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
 	SoundData
@@ -50,28 +53,29 @@ WeaponData
 		"crosshair"
 		{
 				"font"		"Crosshairs"
-				"character"	"Q"
+				"character"	" "
 		}		
 		"autoaim"
 		{
 			"file"		"sprites/crosshairs"
-			"x"		"0"
-			"y"		"96"
-			"width"		"24"
-			"height"	"24"
+			"x"		"9000"
+			"y"		"9000"
+			"width"		"0"
+			"height"	"0"
 		}
 		"zoom"
 		{
 				"font"		"Crosshairs"
-				"character"	"Q"
+				"character"	" "
 		}		
 		"zoom_autoaim"
 		{
 			"file"		"sprites/crosshairs"
-			"x"		"24"
-			"y"		"112"
-			"width"		"104"
-			"height"	"16"
+			"x"		"9000"
+			"y"		"9000"
+			"width"		"0"
+			"height"	"0"
 		}
+		
 	}
 }

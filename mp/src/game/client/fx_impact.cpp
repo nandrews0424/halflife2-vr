@@ -365,7 +365,7 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 // Purpose: Play a sound for an impact. If tr contains a valid hit, use that. 
 //			If not, use the passed in origin & surface.
 //-----------------------------------------------------------------------------
-void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin, int nServerSurfaceProp )
+void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin, int nServerSurfaceProp, float volume )
 {
 	VPROF( "PlayImpactSound" );
 	surfacedata_t *pdata;
@@ -383,7 +383,7 @@ void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin
 	{
 		vecOrigin = tr.endpos;
 	}
-	else
+	else 
 	{
 		vecOrigin = vecServerOrigin;
 	}
@@ -400,7 +400,18 @@ void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin
 		else
 		{
 			CLocalPlayerFilter filter;
-			C_BaseEntity::EmitSound( filter, NULL, pbulletImpactSoundName, pdata->soundhandles.bulletImpact, &vecOrigin );
+			
+			// just instantiate here directly rather than calling into the cbaseentity layercake...
+			EmitSound_t params;
+			params.m_pSoundName = pbulletImpactSoundName;
+			params.m_flSoundTime = 0;
+			params.m_pOrigin = &vecOrigin;
+			params.m_pflSoundDuration = NULL;
+			params.m_bWarnOnDirectWaveReference = true;
+			params.m_flVolume = volume;
+			params.m_nFlags |= SND_CHANGE_VOL; 
+			
+			CBaseEntity::EmitSound( filter, NULL, params, pdata->soundhandles.bulletImpact );
 		}
 
 		return;

@@ -1010,6 +1010,44 @@ void CC_Player_BugBaitSwap( void )
 }
 static ConCommand bugswap("bug_swap", CC_Player_BugBaitSwap, "Automatically swaps the current weapon for the bug bait and back again.", FCVAR_CHEAT );
 
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Quickly switch to the frag grenades, or back to previous item
+//-----------------------------------------------------------------------------
+void CC_Player_FragSwap( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( UTIL_GetCommandClient() );
+
+	if ( pPlayer )
+	{
+		CBaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
+
+		if ( pWeapon )
+		{
+			// Tell the client to stop selecting weapons
+			engine->ClientCommand( UTIL_GetCommandClient()->edict(), "cancelselect" );
+
+			const char *strWeaponName = pWeapon->GetName();
+
+			if ( !Q_stricmp( strWeaponName, "weapon_frag" ) )
+			{
+				pPlayer->SelectLastItem();
+			}
+			else
+			{
+				pPlayer->SelectItem( "weapon_frag" );
+			}
+		}
+	}
+}
+static ConCommand fragswap("frag_swap", CC_Player_FragSwap, "Automatically swaps the current weapon for the frag grenade and back again.");
+
+
+
+
+
+
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void CC_Player_Use( const CCommand &args )

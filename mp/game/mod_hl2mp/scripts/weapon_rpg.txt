@@ -9,7 +9,7 @@ WeaponData
 	"anim_prefix"			"missile launcher"
 	"bucket"				"4"
 	"bucket_position"		"1"
-	"autoswitchfrom"		"1"
+	"autoswitchfrom"		"0"
 
 	"clip_size"				"-1"
 	"clip2_size"			"-1"
@@ -19,9 +19,15 @@ WeaponData
 	"primary_ammo"			"rpg_round"
 	"secondary_ammo"		"None"
 
+	"autoswitchto"			"0"
 	"weight"				"0"
-	"item_flags"			"0"
-	"damage"			"150"
+	"item_flags"			"2"
+	
+	weaponHudOffset
+	{
+		"up"			"6"
+		"forward"		"-3.5"
+	}
 
 	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
 	SoundData

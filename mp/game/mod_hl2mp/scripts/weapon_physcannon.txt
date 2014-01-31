@@ -8,7 +8,7 @@ WeaponData
 	"playermodel"		"models/weapons/w_Physics.mdl"
 	"anim_prefix"		"gauss"
 	"bucket"			"0"
-	"bucket_position"	"2"
+	"bucket_position"	"1"
 	"clip_size"			"0"
 	"clip2_size"		"0"
 	"primary_ammo"		"None"
@@ -19,7 +19,14 @@ WeaponData
 	"autoswitchto"		"0"
 	"autoswitchfrom"	"0"
 	"item_flags"		"2"
+	
+	weaponHudOffset
+	{
+		"forward"		"-4.5"
+		"right"			"-9"
+	}
 
+	
 	SoundData
 	{
 		// launch held object

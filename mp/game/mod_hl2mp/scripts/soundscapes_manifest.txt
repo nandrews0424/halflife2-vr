@@ -13,6 +13,4 @@ soundscaples_manifest
 	"file"		"scripts/soundscapes_coast.txt"
 	"file"		"scripts/soundscapes_prison.txt"
 	"file"		"scripts/soundscapes_trainyard.txt"
-	"file"		"scripts/soundscapes_labs.txt"
-	"file"		"scripts/soundscapes_strike.txt"
 }

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -20,7 +20,7 @@
 #include "ndebugoverlay.h"
 #include "te_effect_dispatch.h"
 #include "rumble_shared.h"
-#include "gamestats.h"
+#include "GameStats.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -28,7 +28,7 @@
 IMPLEMENT_SERVERCLASS_ST( CBaseHLBludgeonWeapon, DT_BaseHLBludgeonWeapon )
 END_SEND_TABLE()
 
-#define BLUDGEON_HULL_DIM		16
+#define BLUDGEON_HULL_DIM		20
 
 static const Vector g_bludgeonMins(-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM);
 static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM);
@@ -39,6 +39,9 @@ static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_
 CBaseHLBludgeonWeapon::CBaseHLBludgeonWeapon()
 {
 	m_bFiresUnderwater = true;
+	m_flNextMotionCheck = 0;
+	m_flLastMotionCheck = 0;
+	m_prevMotionPosition.Init();
 }
 
 //-----------------------------------------------------------------------------
@@ -93,7 +96,11 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 	if ( pOwner == NULL )
 		return;
 
-	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
+	if ( CheckSwingMotion() )
+	{
+		// Handles it's own animation....
+	} 
+	else if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		PrimaryAttack();
 	} 
@@ -107,6 +114,63 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 		return;
 	}
 }
+
+
+#define MOTION_CHECK_RATE .01
+#define MOTION_SWING_THRESHOLD 40
+
+bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
+{
+	if ( m_flNextMotionCheck > gpGlobals->curtime || m_flNextPrimaryAttack > gpGlobals->curtime )
+		return false;
+
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	
+	if ( pOwner == NULL )
+		return false;
+
+	// Get the head of the actual crowbar
+	Vector forward, up, right;
+	pOwner->EyeVectors(&forward, &right, &up);
+	Vector position = pOwner->Weapon_ShootPosition() + (12 * up); 
+	
+
+	Vector currentMotionPosition = position - pOwner->EyePosition();
+	
+	if ( m_prevMotionPosition.IsZero() )
+	{
+		m_prevMotionPosition = currentMotionPosition;
+		m_flLastMotionCheck = gpGlobals->curtime;
+	}
+	
+	// TODO: instead of using world position, just using offset from eye diffs would eliminate player movement/rotation 
+	// from being factored into swing
+
+	// Get vector differences and calculate velocity
+	Vector motion = currentMotionPosition - m_prevMotionPosition;
+		
+	float velocity =  motion.Length() /  (gpGlobals->curtime - m_flLastMotionCheck); //inches per second
+	
+	bool isSwinging = velocity > MOTION_SWING_THRESHOLD;
+	
+	// we also want to make sure we only allow things that are at least generally in the same direction as the aim
+	// to prevent ridiculous issues with false positive hits..
+	float dot = forward.Normalized().Dot(motion.Normalized());
+	isSwinging = isSwinging && dot >= .25;
+
+	if ( isSwinging ) 
+	{
+		MotionSwing(forward, position, motion, velocity);
+	}
+	
+	// update prev motion position
+	m_prevMotionPosition = currentMotionPosition;
+	m_flLastMotionCheck = gpGlobals->curtime;
+	m_flNextMotionCheck = m_flLastMotionCheck + MOTION_CHECK_RATE;
+
+	return isSwinging;
+}
+
 
 //------------------------------------------------------------------------------
 // Purpose :
@@ -136,9 +200,6 @@ void CBaseHLBludgeonWeapon::Hit( trace_t &traceHit, Activity nHitActivity, bool 
 {
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	
-	//Do view kick
-	AddViewKick();
-
 	//Make sound for the AI
 	CSoundEnt::InsertSound( SOUND_BULLET_IMPACT, traceHit.endpos, 400, 0.2f, pPlayer );
 
@@ -151,7 +212,7 @@ void CBaseHLBludgeonWeapon::Hit( trace_t &traceHit, Activity nHitActivity, bool 
 	if ( pHitEntity != NULL )
 	{
 		Vector hitDirection;
-		pPlayer->EyeVectors( &hitDirection, NULL, NULL );
+		pPlayer->EyeVectors( &hitDirection );
 		VectorNormalize( hitDirection );
 
 		CTakeDamageInfo info( GetOwner(), GetOwner(), GetDamageForActivity( nHitActivity ), DMG_CLUB );
@@ -265,7 +326,7 @@ bool CBaseHLBludgeonWeapon::ImpactWater( const Vector &start, const Vector &end 
 			data.m_fFlags |= FX_WATER_IN_SLIME;
 		}
 
-		DispatchEffect( "watersplash", data );			
+		DispatchEffect( "watersplash", data );
 	}
 
 	return true;
@@ -274,14 +335,14 @@ bool CBaseHLBludgeonWeapon::ImpactWater( const Vector &start, const Vector &end 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CBaseHLBludgeonWeapon::ImpactEffect( trace_t &traceHit )
+void CBaseHLBludgeonWeapon::ImpactEffect( trace_t &traceHit, float scale )
 {
 	// See if we hit water (we don't do the other impact effects in this case)
 	if ( ImpactWater( traceHit.startpos, traceHit.endpos ) )
 		return;
 
 	//FIXME: need new decals
-	UTIL_ImpactTrace( &traceHit, DMG_CLUB );
+	UTIL_ImpactTrace( &traceHit, DMG_CLUB, NULL, scale );
 }
 
 
@@ -302,8 +363,8 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary )
 
 	Vector swingStart = pOwner->Weapon_ShootPosition( );
 	Vector forward;
-
-	forward = pOwner->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT, GetRange() );
+	pOwner->EyeVectors(&forward);
+	
 
 	Vector swingEnd = swingStart + forward * GetRange();
 	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );
@@ -382,3 +443,112 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary )
 	//Play swing sound
 	WeaponSound( SINGLE );
 }
+
+
+void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vector &pos, const Vector &dir, float velocity )
+{
+	trace_t traceHit;
+
+	// Try a ray
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	if ( !pOwner )
+		return;
+	
+	Vector v;
+	
+	Vector swingStart = pos;
+	Vector forward = dir/dir.Length();
+
+	Vector up,right;
+	VectorVectors(forward, right, up);
+	Vector swingEnd = swingStart + forward*19 + up*-1; // down a touch to adjust for rotational arc the head travels on when player swings at wrist (seems to be most common)
+	
+	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );
+	Activity nHitActivity = ACT_VM_HITCENTER;
+		
+	// Like bullets, bludgeon traces have to trace against triggers.
+	CTakeDamageInfo triggerInfo( GetOwner(), GetOwner(), GetDamageForActivity( nHitActivity ), DMG_CLUB );
+	triggerInfo.SetDamagePosition( traceHit.startpos );
+	triggerInfo.SetDamageForce( forward );
+
+	// calculate a damage scale to use for effects etc...
+	float damageScale = Clamp((velocity-80) / 120.f, .175f, 1.5f);
+	triggerInfo.ScaleDamage( damageScale );
+	triggerInfo.ScaleDamageForce( damageScale );
+	TraceAttackToTriggers( triggerInfo, traceHit.startpos, traceHit.endpos, forward );
+
+	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
+
+	float motionFireRate = .35f;
+	
+	if ( traceHit.fraction == 1.0f )
+	{
+		nHitActivity = ACT_VM_MISSCENTER;
+
+		// We want to test the first swing again
+		Vector testEnd = swingStart + forward*24.f + up*-2;
+				
+		// See if we happened to hit water
+		if ( ImpactWater( swingStart, testEnd ) )
+			m_flNextPrimaryAttack = gpGlobals->curtime + motionFireRate;
+	
+	}
+	else
+	{
+		// Hit stuff here...
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		
+		//Make sound for the AI
+		CSoundEnt::InsertSound( SOUND_BULLET_IMPACT, traceHit.endpos, 400, 0.2f, pPlayer );
+		CBaseEntity	*pHitEntity = traceHit.m_pEnt;
+
+		//Apply damage to a hit target
+		if ( pHitEntity != NULL )
+		{
+			CTakeDamageInfo info( GetOwner(), GetOwner(), GetDamageForActivity( nHitActivity ) * damageScale, DMG_CLUB );
+			
+			if( pPlayer && pHitEntity->IsNPC() )
+			{
+				// If bonking an NPC, adjust damage.
+				info.AdjustPlayerDamageInflictedForSkillLevel();
+			}
+
+			CalculateMeleeDamageForce( &info, forward, traceHit.endpos, damageScale );
+
+			pHitEntity->DispatchTraceAttack( info, forward, &traceHit ); 
+			ApplyMultiDamage();
+
+			// Now hit all triggers along the ray that... 
+			TraceAttackToTriggers( info, traceHit.startpos, traceHit.endpos, forward );
+
+			if ( ToBaseCombatCharacter( pHitEntity ) )
+			{
+				gamestats->Event_WeaponHit( pPlayer, true, GetClassname(), info );
+			}
+		}
+
+		// Apply an impact effect
+		ImpactEffect( traceHit, Clamp(damageScale, 0.f, 1.f) );
+		SendWeaponAnim( ACT_VM_HITDYNAMIC );
+
+		//Setup our next attack times
+		m_flNextPrimaryAttack = gpGlobals->curtime + motionFireRate;
+		m_flNextSecondaryAttack = gpGlobals->curtime + motionFireRate;
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

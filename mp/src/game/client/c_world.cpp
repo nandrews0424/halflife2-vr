@@ -99,7 +99,7 @@ void C_World::OnDataChanged( DataUpdateType_t updateType )
 	{
 		modemanager->SwitchMode( false, true );
 
-		if ( m_bStartDark )
+		if ( true )
 		{
 			ScreenFade_t sf;
 			memset( &sf, 0, sizeof( sf ) );
@@ -107,8 +107,8 @@ void C_World::OnDataChanged( DataUpdateType_t updateType )
 			sf.r = 0;
 			sf.g = 0;
 			sf.b = 0;
-			sf.duration = (float)(1<<SCREENFADE_FRACBITS) * 5.0f;
-			sf.holdTime = (float)(1<<SCREENFADE_FRACBITS) * 1.0f;
+			sf.duration = (float)(1<<SCREENFADE_FRACBITS) * 4.0f;
+			sf.holdTime = (float)(1<<SCREENFADE_FRACBITS) * 0.5f;
 			sf.fadeFlags = FFADE_IN | FFADE_PURGE;
 			vieweffects->Fade( sf );
 		}

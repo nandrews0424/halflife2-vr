@@ -107,6 +107,8 @@ void CGrenadeBugBait::Spawn( void )
 
 	m_pSporeTrail = NULL;
 
+
+
 	/*
 	m_pSporeTrail = SporeTrail::CreateSporeTrail();
 	

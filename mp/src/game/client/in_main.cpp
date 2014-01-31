@@ -32,6 +32,7 @@
 
 #include "client_virtualreality.h"
 #include "sourcevr/isourcevirtualreality.h"
+#include "vr/vr_controller.h"
 
 // NVNT Include
 #include "haptics/haptic_utils.h"
@@ -58,6 +59,8 @@ float anglemod( float a );
 // FIXME void V_Init( void );
 static int in_impulse = 0;
 static int in_cancel = 0;
+
+MotionTracker* motionTracker;
 
 ConVar cl_anglespeedkey( "cl_anglespeedkey", "0.67", 0 );
 ConVar cl_yawspeed( "cl_yawspeed", "210", FCVAR_NONE, "Client yaw speed.", true, -100000, true, 100000 );
@@ -1097,6 +1100,7 @@ void CInput::ExtraMouseSample( float frametime, bool active )
 
 			cmd->viewangles = newViewangles;
 			prediction->SetLocalViewAngles( cmd->viewangles );
+			g_MotionTracker()->getEyeToWeaponOffset(cmd->viewToWeaponOffset);
 		}
 	}
 
@@ -1251,6 +1255,8 @@ void CInput::CreateMove ( int sequence_number, float input_sample_frametime, boo
 				cmd->sidemove = newMotion[1];
 				cmd->upmove = newMotion[2];
 				cmd->viewangles = newViewangles;
+				cmd->torsoYaw = g_MotionTracker()->getTorsoAngles().y;
+				g_MotionTracker()->getEyeToWeaponOffset(cmd->viewToWeaponOffset);
 			}
 			else
 			{
@@ -1668,7 +1674,9 @@ void CInput::Init_All (void)
 		Init_Mouse ();
 		Init_Keyboard();
 	}
-		
+	
+	motionTracker = new MotionTracker();
+
 	// Initialize third person camera controls.
 	Init_Camera();
 }
@@ -1688,6 +1696,8 @@ void CInput::Shutdown_All(void)
 
 	delete[] m_pVerifiedCommands;
 	m_pVerifiedCommands = NULL;
+
+	delete motionTracker;
 }
 
 void CInput::LevelInit( void )

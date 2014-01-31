@@ -43,6 +43,8 @@ public:
 		command_number = 0;
 		tick_count = 0;
 		viewangles.Init();
+		viewToWeaponOffset.Init();
+		eyeOffset.Init();
 		forwardmove = 0.0f;
 		sidemove = 0.0f;
 		upmove = 0.0f;
@@ -53,6 +55,7 @@ public:
 		random_seed = 0;
 		mousedx = 0;
 		mousedy = 0;
+		torsoYaw = 0;
 
 		hasbeenpredicted = false;
 #if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
@@ -68,6 +71,8 @@ public:
 		command_number		= src.command_number;
 		tick_count			= src.tick_count;
 		viewangles			= src.viewangles;
+		viewToWeaponOffset 	= src.viewToWeaponOffset;
+		eyeOffset 			= src.eyeOffset;
 		forwardmove			= src.forwardmove;
 		sidemove			= src.sidemove;
 		upmove				= src.upmove;
@@ -78,6 +83,7 @@ public:
 		random_seed			= src.random_seed;
 		mousedx				= src.mousedx;
 		mousedy				= src.mousedy;
+		torsoYaw			= src.torsoYaw;
 
 		hasbeenpredicted	= src.hasbeenpredicted;
 
@@ -100,7 +106,10 @@ public:
 		CRC32_Init( &crc );
 		CRC32_ProcessBuffer( &crc, &command_number, sizeof( command_number ) );
 		CRC32_ProcessBuffer( &crc, &tick_count, sizeof( tick_count ) );
-		CRC32_ProcessBuffer( &crc, &viewangles, sizeof( viewangles ) );    
+		CRC32_ProcessBuffer( &crc, &viewangles, sizeof( viewangles ) );
+		CRC32_ProcessBuffer( &crc, &viewToWeaponOffset, sizeof( viewToWeaponOffset ) );
+		CRC32_ProcessBuffer( &crc, &eyeOffset, sizeof( eyeOffset ) );
+		CRC32_ProcessBuffer( &crc, &torsoYaw, sizeof( torsoYaw ) );    
 		CRC32_ProcessBuffer( &crc, &forwardmove, sizeof( forwardmove ) );   
 		CRC32_ProcessBuffer( &crc, &sidemove, sizeof( sidemove ) );      
 		CRC32_ProcessBuffer( &crc, &upmove, sizeof( upmove ) );         
@@ -157,6 +166,15 @@ public:
 
 	// Client only, tracks whether we've predicted this command at least once
 	bool	hasbeenpredicted;
+
+	// Offset from viewpoint to weapon origin based on tracking...
+	Vector  viewToWeaponOffset;
+
+	// Tracked head offset...
+	Vector  eyeOffset;
+
+	float   torsoYaw;
+
 
 	// Back channel to communicate IK state
 #if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )

@@ -3300,14 +3300,35 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 }
 
 extern ConVar muzzleflash_light;
+extern ConVar muzzleflash_use_dynamic;
 
 void C_BaseAnimating::ProcessMuzzleFlashEvent()
 {
 	// If we have an attachment, then stick a light on it.
-	if ( muzzleflash_light.GetBool() )
+	if ( muzzleflash_light.GetBool() && m_Attachments.Count() > 0 )
 	{
-		//FIXME: We should really use a named attachment for this
-		if ( m_Attachments.Count() > 0 )
+		if ( muzzleflash_use_dynamic.GetBool() )
+		{
+			Vector vAttachment, vAng, weaponForward;
+			QAngle angles;
+			GetAttachment( "muzzle", vAttachment, angles );
+			QAngle weaponAngles = GetAbsAngles();
+			AngleVectors(weaponAngles, &weaponForward);
+
+			AngleVectors( angles, &vAng );
+			vAttachment += vAng * 2;
+
+			dlight_t *dl = effects->CL_AllocDlight ( index );
+			dl->origin = vAttachment;
+			dl->color.r = 255;
+			dl->color.g = 232;
+			dl->color.b = 120;
+			dl->m_Direction = weaponForward;
+			dl->die = gpGlobals->curtime + 0.05f;
+			dl->radius = random->RandomFloat( 220.0f, 256.0f );
+			dl->decay = 496;
+		}
+		else 
 		{
 			Vector vAttachment;
 			QAngle dummyAngles;
@@ -3832,7 +3853,7 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 				
 				if( GetAttachment( 2, attachOrigin, attachAngles ) )
 				{
-					tempents->EjectBrass( attachOrigin, attachAngles, GetAbsAngles(), atoi( options ) );
+					tempents->EjectBrass( attachOrigin, attachAngles, GetAbsAngles(), atoi( options ), false );
 				}
 			}
 		}

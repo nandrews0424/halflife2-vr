@@ -191,6 +191,13 @@ void CBasePlayer::ItemPreFrame()
 		return;
 #endif
 
+#if !defined( CLIENT_DLL )
+	if ( GetActiveWeapon() )
+	{
+		SetLaserCrosshairPosition();
+	}
+#endif
+
 	pActive->ItemPreFrame();
 }
 
@@ -815,10 +822,24 @@ void CBasePlayer::SetStepSoundTime( stepsoundtimes_t iStepSoundTime, bool bWalki
 	}
 }
 
+
+QAngle CBasePlayer::TorsoAngles( )
+{
+	return m_torsoAngles;   
+}
+
+
+Vector CBasePlayer::EyeToWeaponOffset( )
+{
+	return m_eyeToWeaponOffset;
+}
+
+
 Vector CBasePlayer::Weapon_ShootPosition( )
 {
-	return EyePosition();
+	return EyePosition() + EyeToWeaponOffset();
 }
+
 
 void CBasePlayer::SetAnimationExtension( const char *pExtension )
 {
@@ -855,6 +876,12 @@ bool CBasePlayer::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmodelindex 
 		if ( pViewModel )
 			pViewModel->RemoveEffects( EF_NODRAW );
 		ResetAutoaim( );
+
+#if !defined(CLIENT_DLL)
+		// update the laser crosshair for the new weapon
+		UpdateLaserCrosshair();
+#endif
+
 		return true;
 	}
 	return false;
@@ -1072,7 +1099,7 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 
 	trace_t tr;
 	// Search for objects in a sphere (tests for entities that are not solid, yet still useable)
-	Vector searchCenter = EyePosition();
+	Vector searchCenter = EyePosition() + EyeToWeaponOffset();
 
 	// NOTE: Some debris objects are useable too, so hit those as well
 	// A button, etc. can be made out of clip brushes, make sure it's +useable via a traceline, too.

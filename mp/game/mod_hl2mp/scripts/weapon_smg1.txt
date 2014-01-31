@@ -21,7 +21,20 @@ WeaponData
 
 	"weight"				"3"
 	"item_flags"			"0"
-	"damage"			"5"
+
+
+	weaponHudOffset
+	{
+		"forward"		"-2.25"
+		"up"			"3.5"
+	}
+
+	laserCrosshair
+	{
+		"scale"			"1"
+		"a"				"235"
+	}
+
 
 	// Sounds for the weapon. There is a max of 16 sounds per category (i.e. max 16 "single_shot" sounds)
 	SoundData

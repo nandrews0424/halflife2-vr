@@ -44,6 +44,8 @@ void PostToolMessage( HTOOLHANDLE hEntity, KeyValues *msg );
 
 void FormatViewModelAttachment( Vector &vOrigin, bool bInverse )
 {
+	return; // VR doesn't have separate viewmode fov, so this throws off the attach point calculations
+
 	// Presumably, SetUpView has been called so we know our FOV and render origin.
 	const CViewSetup *pViewSetup = view->GetPlayerViewSetup();
 	
