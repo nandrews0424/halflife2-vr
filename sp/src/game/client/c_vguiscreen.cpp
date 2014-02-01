@@ -162,6 +162,8 @@ void C_VGuiScreen::GetAimEntOrigin( IClientEntity *pAttachedTo, Vector *pOrigin,
 	const char* panelName = PanelName();
     vgui::Panel panel = m_PanelWrapper.GetPanel();
              
+
+	// Health screen positioning hack
      if ( Q_strcmp(panelName, "health_screen") == 0 )
      {
 		QAngle weapAngles = pEnt->GetAbsAngles();
@@ -173,7 +175,7 @@ void C_VGuiScreen::GetAimEntOrigin( IClientEntity *pAttachedTo, Vector *pOrigin,
 
 		C_BaseViewModel *vm = pPlayer->GetViewModel(0);
 		if ( vm == NULL )
-			return;             
+			return;
 
 		QAngle vmAngles;                        
 		Vector vmOrigin;
@@ -184,14 +186,14 @@ void C_VGuiScreen::GetAimEntOrigin( IClientEntity *pAttachedTo, Vector *pOrigin,
 
 		VMatrix worldFromPanel;
 		AngleMatrix(vmAngles, worldFromPanel.As3x4());
-		MatrixRotate(worldFromPanel, Vector(1, 0, 0), 180.f);
+		// MatrixRotate(worldFromPanel, Vector(1, 0, 0), 180.f);
 		MatrixRotate(worldFromPanel, Vector(0, 1, 0), 90.f);
 		MatrixAngles(worldFromPanel.As3x4(), *pAngles);
 
 		Vector forward,up,right;
 		AngleVectors(vmAngles, &right,&up,&forward); // these are not the normal orientations due to the rotations above
 
-		*pOrigin = vmOrigin + up*-1 + forward*-5;             
+		*pOrigin = vmOrigin + up*3 + forward*1 + right*.5;
 		return;
 	}
     

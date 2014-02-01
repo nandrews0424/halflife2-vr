@@ -648,15 +648,9 @@ void MotionTracker::sixenseGuiMouseControl()
 sixenseControllerData MotionTracker::getControllerData(sixenseUtils::IControllerManager::controller_desc which_controller)
 {
 	int idx = _controllerManager->getIndex( which_controller );
-
-
-	// TODO: now that this is detected, need a better way to show it....
 	
 	if ( idx < 0 || idx > 1 )
 	{
-		if ( writeDebug() )
-			Warning("Place your hydra controllers on the dock, sixense calibration needed! \n");
-		
 		idx = (int) which_controller;
 	}
 
