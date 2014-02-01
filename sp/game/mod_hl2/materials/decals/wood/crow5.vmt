@@ -1,0 +1,6 @@
+"DecalModulate"
+{
+	"$basetexture" "Decals/wood/CROW5"
+	"$decalscale" 0.10
+	"$decal" 1
+}
