@@ -6,9 +6,11 @@
 
 #include "cbase.h"
 #include "basehlcombatweapon_shared.h"
-
 #include "hl2_player_shared.h"
 
+#if !defined( CLIENT_DLL )
+#include "te_effect_dispatch.h"
+#endif
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -144,6 +146,9 @@ bool CBaseHLCombatWeapon::Deploy( void )
 	return BaseClass::Deploy();
 }
 
+
+
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
@@ -152,6 +157,15 @@ bool CBaseHLCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 {
 	if ( BaseClass::Holster( pSwitchingTo ) )
 	{
+
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		if ( pPlayer != NULL )
+		{
+			CBaseViewModel* pViewModel = pPlayer->GetViewModel();
+			if ( pViewModel != NULL )
+				StopParticleEffects(pViewModel);	
+		}
+		
 		m_flHolsterTime = gpGlobals->curtime;
 		return true;
 	}

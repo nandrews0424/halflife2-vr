@@ -29,9 +29,14 @@ IMPLEMENT_SERVERCLASS_ST( CBaseHLBludgeonWeapon, DT_BaseHLBludgeonWeapon )
 END_SEND_TABLE()
 
 #define BLUDGEON_HULL_DIM		20
+#define BLUDGEON_HULL_DIM_MOTION 4.f
 
 static const Vector g_bludgeonMins(-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM);
 static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM);
+
+static const Vector g_bludgeonMotionMins(-BLUDGEON_HULL_DIM_MOTION,-BLUDGEON_HULL_DIM_MOTION,-BLUDGEON_HULL_DIM_MOTION);
+static const Vector g_bludgeonMotionMaxs(BLUDGEON_HULL_DIM_MOTION,BLUDGEON_HULL_DIM_MOTION,BLUDGEON_HULL_DIM_MOTION);
+
 
 //-----------------------------------------------------------------------------
 // Constructor
@@ -116,8 +121,10 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 }
 
 
+// Disabling motion swing check filter for now, will run on every update
+
 #define MOTION_CHECK_RATE .01
-#define MOTION_SWING_THRESHOLD 40
+#define MOTION_SWING_THRESHOLD 0
 
 bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
 {
@@ -143,20 +150,12 @@ bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
 		m_flLastMotionCheck = gpGlobals->curtime;
 	}
 	
-	// TODO: instead of using world position, just using offset from eye diffs would eliminate player movement/rotation 
-	// from being factored into swing
-
 	// Get vector differences and calculate velocity
 	Vector motion = currentMotionPosition - m_prevMotionPosition;
 		
 	float velocity =  motion.Length() /  (gpGlobals->curtime - m_flLastMotionCheck); //inches per second
 	
 	bool isSwinging = velocity > MOTION_SWING_THRESHOLD;
-	
-	// we also want to make sure we only allow things that are at least generally in the same direction as the aim
-	// to prevent ridiculous issues with false positive hits..
-	float dot = forward.Normalized().Dot(motion.Normalized());
-	isSwinging = isSwinging && dot >= .25;
 
 	if ( isSwinging ) 
 	{
@@ -445,6 +444,8 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary )
 }
 
 
+#define BLUDGEON_HULL_DIM_MOTION 4.f
+
 void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vector &pos, const Vector &dir, float velocity )
 {
 	trace_t traceHit;
@@ -480,7 +481,43 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 
 	float motionFireRate = .35f;
+	bool wasBlock = false;
+	Vector vecToTarget = forward.Normalized();
+
+
+	// If no hit we'd do a second broader hulltrace that checks only for impacts with enemies
+	// Since it's quite hard to hit manhacks, flying crabs etc otherwise
+	// Ideally this acts as an 'autoaim' of sorts for the motion swinging without screwing up the normal 
+	// crowbar interactions with world objects
+	if ( traceHit.fraction == 1.0 )
+	{
+		// Get radius of hull trace and adjust start to include it
+		float bludgeonHullRadius = 1.732f * BLUDGEON_HULL_DIM_MOTION;  
+		Vector hullSwingStart = swingStart + forward * bludgeonHullRadius;
+		
+		UTIL_TraceHull( hullSwingStart, swingEnd, g_bludgeonMotionMins, g_bludgeonMotionMaxs, CONTENTS_MONSTER, pOwner, COLLISION_GROUP_NONE, &traceHit );
+
+		// If we still didn't hit anything, check for a 'block' along the shaft of the weapon
+		if ( traceHit.fraction == 1.0 )
+		{
+			Vector bottom = swingStart + up*-12;
+			UTIL_TraceHull( swingStart, bottom, g_bludgeonMotionMins, g_bludgeonMotionMaxs, CONTENTS_MONSTER, pOwner, COLLISION_GROUP_NONE, &traceHit );
+			wasBlock = true;	
+		}
+
+
+		if ( traceHit.fraction < 1.0 && traceHit.m_pEnt )
+		{
+			vecToTarget = traceHit.m_pEnt->GetAbsOrigin() - swingStart;
+			VectorNormalize( vecToTarget );
+			nHitActivity = ChooseIntersectionPointAndActivity( traceHit, g_bludgeonMotionMins, g_bludgeonMotionMaxs, pOwner );
+		}
+	}
+
 	
+	
+	// Now handle the hit if there was one..
+
 	if ( traceHit.fraction == 1.0f )
 	{
 		nHitActivity = ACT_VM_MISSCENTER;
@@ -505,6 +542,10 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 		//Apply damage to a hit target
 		if ( pHitEntity != NULL )
 		{
+			if ( wasBlock )
+				damageScale *= .5;
+
+
 			CTakeDamageInfo info( GetOwner(), GetOwner(), GetDamageForActivity( nHitActivity ) * damageScale, DMG_CLUB );
 			
 			if( pPlayer && pHitEntity->IsNPC() )

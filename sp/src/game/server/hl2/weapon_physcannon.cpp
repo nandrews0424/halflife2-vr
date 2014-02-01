@@ -1157,6 +1157,13 @@ void CPlayerPickupController::Use( CBaseEntity *pActivator, CBaseEntity *pCaller
 		// +ATTACK will throw phys objects
 		if ( m_pPlayer->m_nButtons & IN_ATTACK )
 		{
+			m_pPlayer->m_nButtons &= ~IN_ATTACK;  // fix issue with firing directly after item is thrown....
+			
+			// debounce the primary fire since we don't have an unholster animation to block things...		
+			CBaseCombatWeapon* pWeapon = m_pPlayer->GetActiveWeapon();
+			if ( pWeapon != NULL )
+				pWeapon->SetNextPrimaryAttackTime(gpGlobals->curtime += .25f); 
+			
 			Shutdown( true );
 			Vector vecLaunch;
 			m_pPlayer->EyeVectors( &vecLaunch );

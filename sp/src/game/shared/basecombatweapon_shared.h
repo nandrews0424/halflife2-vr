@@ -376,6 +376,8 @@ public:
 	int GetSecondaryAmmoCount() { return m_iSecondaryAmmoCount; }
 	void SetSecondaryAmmoCount( int count ) { m_iSecondaryAmmoCount = count; }
 
+	void SetNextPrimaryAttackTime( float time ) { m_flNextPrimaryAttack = time; } 
+
 	virtual CHudTexture const	*GetSpriteActive( void ) const;
 	virtual CHudTexture const	*GetSpriteInactive( void ) const;
 	virtual CHudTexture const	*GetSpriteAmmo( void ) const;
