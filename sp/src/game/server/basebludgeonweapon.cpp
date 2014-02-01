@@ -29,7 +29,7 @@ IMPLEMENT_SERVERCLASS_ST( CBaseHLBludgeonWeapon, DT_BaseHLBludgeonWeapon )
 END_SEND_TABLE()
 
 #define BLUDGEON_HULL_DIM		20
-#define BLUDGEON_HULL_DIM_MOTION 4.f
+#define BLUDGEON_HULL_DIM_MOTION 16
 
 static const Vector g_bludgeonMins(-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM);
 static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM);
@@ -124,7 +124,7 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 // Disabling motion swing check filter for now, will run on every update
 
 #define MOTION_CHECK_RATE .01
-#define MOTION_SWING_THRESHOLD 0
+#define MOTION_SWING_THRESHOLD 50
 
 bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
 {
@@ -444,7 +444,9 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary )
 }
 
 
-#define BLUDGEON_HULL_DIM_MOTION 4.f
+
+// TODO: need to add debounce on a particular swing, saving of the vector during impact 
+// and requiring something opposite before an impact can occur again...
 
 void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vector &pos, const Vector &dir, float velocity )
 {
@@ -462,7 +464,7 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 
 	Vector up,right;
 	VectorVectors(forward, right, up);
-	Vector swingEnd = swingStart + forward*19 + up*-1; // down a touch to adjust for rotational arc the head travels on when player swings at wrist (seems to be most common)
+	Vector swingEnd = swingStart + forward*19.5; 
 	
 	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );
 	Activity nHitActivity = ACT_VM_HITCENTER;
@@ -494,27 +496,30 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 		// Get radius of hull trace and adjust start to include it
 		float bludgeonHullRadius = 1.732f * BLUDGEON_HULL_DIM_MOTION;  
 		Vector hullSwingStart = swingStart + forward * bludgeonHullRadius;
+		Vector hullSwingEnd = swingEnd + forward;
 		
-		UTIL_TraceHull( hullSwingStart, swingEnd, g_bludgeonMotionMins, g_bludgeonMotionMaxs, CONTENTS_MONSTER, pOwner, COLLISION_GROUP_NONE, &traceHit );
-
-		// If we still didn't hit anything, check for a 'block' along the shaft of the weapon
-		if ( traceHit.fraction == 1.0 )
-		{
-			Vector bottom = swingStart + up*-12;
-			UTIL_TraceHull( swingStart, bottom, g_bludgeonMotionMins, g_bludgeonMotionMaxs, CONTENTS_MONSTER, pOwner, COLLISION_GROUP_NONE, &traceHit );
-			wasBlock = true;	
-		}
-
-
+		UTIL_TraceHull( hullSwingStart, swingEnd, g_bludgeonMotionMins, g_bludgeonMotionMaxs, MASK_SHOT_HULL, pOwner, COLLISION_GROUP_NONE, &traceHit );
+				
 		if ( traceHit.fraction < 1.0 && traceHit.m_pEnt )
 		{
-			vecToTarget = traceHit.m_pEnt->GetAbsOrigin() - swingStart;
-			VectorNormalize( vecToTarget );
-			nHitActivity = ChooseIntersectionPointAndActivity( traceHit, g_bludgeonMotionMins, g_bludgeonMotionMaxs, pOwner );
+			if ( traceHit.m_pEnt->ClassMatches("npc_manhack") || 
+				 traceHit.m_pEnt->ClassMatches("npc_headcra*") || 
+				 traceHit.m_pEnt->ClassMatches("npc_ant*") ||
+				 traceHit.m_pEnt->ClassMatches("npc_zomb*") ||
+				 traceHit.m_pEnt->ClassMatches("npc_fastzombie") ) // TODO: other entities here...
+			{
+				Msg("Bludgeoned a %s \n", traceHit.m_pEnt->GetClassname());
+				vecToTarget = traceHit.m_pEnt->GetAbsOrigin() - swingStart;
+				VectorNormalize( vecToTarget );
+				nHitActivity = ChooseIntersectionPointAndActivity( traceHit, g_bludgeonMotionMins, g_bludgeonMotionMaxs, pOwner );
+			}
+			else
+			{
+				traceHit.fraction = 1.0f;
+			}
 		}
 	}
 
-	
 	
 	// Now handle the hit if there was one..
 
@@ -542,10 +547,7 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 		//Apply damage to a hit target
 		if ( pHitEntity != NULL )
 		{
-			if ( wasBlock )
-				damageScale *= .5;
-
-
+		
 			CTakeDamageInfo info( GetOwner(), GetOwner(), GetDamageForActivity( nHitActivity ) * damageScale, DMG_CLUB );
 			
 			if( pPlayer && pHitEntity->IsNPC() )
