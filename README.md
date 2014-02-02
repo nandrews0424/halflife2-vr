@@ -5,7 +5,7 @@ The intent of this mod is to provide an extended VR experience built on the base
 
 ### Building the mod for the first time
 
-You'll need to have [visual c++ 2010 express](http://www.visualstudio.com/en-us/downloads#d-2010-express installed to build the mod.
+You'll need to have [visual c++ 2010 express](http://www.visualstudio.com/en-us/downloads#d-2010-express) installed to build the mod.
 
 1. Clone the repository
 2. Browse to sp/src
