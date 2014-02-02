@@ -119,8 +119,8 @@ MotionTracker::MotionTracker()
 
 	sixenseInitialize();
 
-	_rhandCalibration.Identity();
-
+	_rhandCalibration.Identity(); // _rhandCalibration is the calibration between sixense and the torso coordinate space
+	
 	PositionMatrix(Vector(-1, 0, -11.5), _eyesToTorsoTracker);
 	
 	_controlMode = (MotionControlMode_t) mt_control_mode.GetInt();
@@ -200,19 +200,23 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
 	MatrixPosition(_eyesToTorsoTracker, vEyes);
+
+	// weaponMatrix is in sixense coordinate space
+	// torsoMatrix is in sixense coordinate space
+	
+	VectorRotate(vEyes, _sixenseToWorld, vEyes);
+	VectorRotate(vEyes, _rhandCalibration.As3x4(), vEyes);
+	
 	
 	Vector vEyesToWeapon = (vWeapon - _vecBaseToTorso)  + vEyes;			// was ( weapon - torso ) but since at this point the torso changes haven't been applied (get overridden in the view), that's unnecessary...
 	
 	PositionMatrix(vEyesToWeapon, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
 	
-	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);			// project weapon matrix by the base engine yaw
-	MatrixPosition(weaponMatrix, weaponPos);								// get the angles back off
-	
-	
+	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);			// _sixenseToWorld converts to torso relative
 	MatrixMultiply(_rhandCalibration.As3x4(), weaponMatrix, weaponMatrix);  // adjust the weapon angles per the calibration
 
-	
-	MatrixAngles(weaponMatrix, vmangles);									// get the angles back off after applying the calibration
+	MatrixPosition(weaponMatrix, weaponPos);								// get the angles & positions back off
+	MatrixAngles(weaponMatrix, vmangles);									
 		
 	vmorigin += weaponPos;
 }
@@ -227,15 +231,16 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 
 	matrix3x4_t weaponMatrix = getTrackedRightHand();
 		
-	// get raw torso and weap positions, construct the distance from the diff of those two + the distance to the eyes from a properly calibrated torso tracker...
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
 	MatrixPosition(_eyesToTorsoTracker, vEyes);
+	// TODO same issue here as before, eyeToTorso must be adjusted to torso coordinates in game for eye offset to work properly
 	
 	offset = (vWeapon - _vecBaseToTorso)  + vEyes;				
 
 	PositionMatrix(offset, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
-	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);	// project weapon matrix by the base engine yaw
+	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);	// convert from sixense to torso coordinates
+	MatrixMultiply(_rhandCalibration.As3x4(), weaponMatrix, weaponMatrix);  // from torso to adjusted... todo: just for clarity, it should be sixenseToCalibrated -> calibratedToTorso
 	MatrixPosition(weaponMatrix, offset);							// get the position back off
 }
 
@@ -353,34 +358,37 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 	if ( !_initialized )
 		return;
 
-	if ( !isTrackingTorso() ) {
-		
-		Msg("Don't know how to calibrate without a torso reading\n");
-		return;	
-	}
-
+	
 	QAngle engineTorsoAngles; 
 	MatrixToAngles(torsoMatrix, engineTorsoAngles);
 	_baseEngineYaw = engineTorsoAngles.y;
 	_accumulatedYawTorso = 0; // only used for movement vector adjustments...
 
+
+
+	// TODO: new calibration
+
+	// need to set _vecBaseToTorso as offset from base to torso (point offset below eyes) this time based off both hands
+	
+	
+	// need an additional concept for sixense base station -> source translation 
+
+
+
+
+
+
+
 	// regardless of control mode, we snapshot the torso (lhand) tracker offset, the only change is how it's applied in the viewmodel offsets...
 	matrix3x4_t trackedTorso = getTrackedTorso();
 	MatrixGetTranslation(trackedTorso, _vecBaseToTorso);
+
+
+
+
+
+
 	
-
-	// todo: come up with a better way than this....
-	if ( false && gpGlobals->curtime < _lastCalibrated + .5 ) 
-	{
-		
-		Msg("Calibration double tapped, calibrating off current weapon angles \n");
-		_rhandCalibration = getTrackedRightHand(false);
-		_rhandCalibration.SetTranslation(Vector(0,0,0));
-		_rhandCalibration = _rhandCalibration.InverseTR();
-
-		// VR todo: if upside down, need to invert the z axis
-	}
-
 	_lastCalibrated = gpGlobals->curtime;
 	_calibrate = false;
 }
