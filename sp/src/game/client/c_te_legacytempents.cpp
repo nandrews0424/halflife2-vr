@@ -1683,8 +1683,12 @@ void CTempEnts::EjectBrass( const Vector &pos1, const QAngle &angles, const QAng
 	{
 		Vector  dir;
 		AngleVectors(gunAngles, &dir);
+
 		Vector shellVelocity = dir.Normalized()* -10;
+		shellVelocity.x = random->RandomFloat(-4.5,4.5); 
+		shellVelocity.y = random->RandomFloat(-4.5,4.5); 
 		shellVelocity.z = 16.f; // override z of shell path to make fall slower?
+		
 		pTemp->SetVelocity( shellVelocity ); // set a bit of up velocity?
 		pTemp->m_vecTempEntAngVelocity[0] = random->RandomFloat(-256,256);
 		pTemp->m_vecTempEntAngVelocity[1] = random->RandomFloat(-256,256);
