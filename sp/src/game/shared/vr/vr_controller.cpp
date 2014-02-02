@@ -52,6 +52,11 @@ static ConVar mt_swap_hydras( "mt_swap_hydras", "0", 0, "Flip the right & left h
 static ConVar mt_menu_control_mode( "mt_menu_control_mode", "0", FCVAR_ARCHIVE, "Control the mouse in menu with 0 = Right joystick, 1 = Right hand position, 2 = Both");
 static ConVar mt_tactical_haptics( "mt_tactical_haptics", "0", FCVAR_ARCHIVE, "Special mode for the hydra orientation needed for the tactical haptics guys' setup");
 
+// TODO: once we've cleaned up all the calibrations making it clearer, reenable this...
+// static ConVar mt_calibration_offset_forward( "mt_calibration_offset_forward", "3", FCVAR_ARCHIVE, "Forward offset for calibration position (bigger pushes weapon further forward)");
+static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "16", FCVAR_ARCHIVE, "Downward offset for calibration position (bigger pushes weapon further down)");
+
+
 MotionTracker* _motionTracker;
 
 #define MM_TO_INCHES(x) (x/1000.f)*(1/METERS_PER_INCH)
@@ -207,7 +212,10 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	VectorRotate(vEyes, _sixenseToWorld, vEyes);
 	VectorRotate(vEyes, _rhandCalibration.As3x4(), vEyes);
 	
-	
+	// TODO: still getting weird behavior with the eye forward offset
+	// it is converted into the calibrated sixense space, and is then combined with the weapon offset (not yet in calibrated space)
+	// and is then
+
 	Vector vEyesToWeapon = (vWeapon - _vecBaseToTorso)  + vEyes;			// was ( weapon - torso ) but since at this point the torso changes haven't been applied (get overridden in the view), that's unnecessary...
 	
 	PositionMatrix(vEyesToWeapon, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
@@ -364,31 +372,39 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 	_baseEngineYaw = engineTorsoAngles.y;
 	_accumulatedYawTorso = 0; // only used for movement vector adjustments...
 
-
-
-	// TODO: new calibration
-
-	// need to set _vecBaseToTorso as offset from base to torso (point offset below eyes) this time based off both hands
-	
-	
-	// need an additional concept for sixense base station -> source translation 
-
-
-
-
-
-
-
 	// regardless of control mode, we snapshot the torso (lhand) tracker offset, the only change is how it's applied in the viewmodel offsets...
 	matrix3x4_t trackedTorso = getTrackedTorso();
 	MatrixGetTranslation(trackedTorso, _vecBaseToTorso);
+		
+	if ( _controlMode == TRACK_BOTH_HANDS )
+	{
+		
+		// With both hands, best way to calibrate is to have hands at shoulders
+		// and infer forward as perpendicular to the vector between the controllers
+		// removing the need to know the base station alignment
 
+		matrix3x4_t matRightHand = getTrackedRightHand();
+		Vector rightHand, leftHand, rightHandToLeft;
+		leftHand = _vecBaseToTorso;
+		MatrixGetTranslation(matRightHand, rightHand);
+		rightHandToLeft = leftHand - rightHand;
+		
+		Vector forward;
+		CrossProduct(rightHandToLeft.Normalized(), Vector(0,0,1), forward);
+		forward.z = 0;
+				
+		VectorMatrix(forward, _rhandCalibration.As3x4());
+		_rhandCalibration = _rhandCalibration.InverseTR();
 
+		// Now we reset vecBaseToTorso to be the midpoint between the two
+		_vecBaseToTorso = rightHand + rightHandToLeft/2.f;
 
+		// And we should also adjust the expected offset from head to "torso" b/c it's a bit harder to set perfectly otherwise..
+		
+		PositionMatrix(Vector(0, 0, -mt_calibration_offset_down.GetFloat()), _eyesToTorsoTracker);
 
+	}
 
-
-	
 	_lastCalibrated = gpGlobals->curtime;
 	_calibrate = false;
 }
