@@ -1735,8 +1735,8 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 		if ( !pPlayer->IsInAVehicle() )
 		{
 			m_inDelayedTrigger = true;
-			m_delayUntil = gpGlobals->curtime + 1.5f;
-			engine->ClientCommand(pPlayer->edict(), "fadeout 1");
+			m_delayUntil = gpGlobals->curtime + 1.75f;
+			engine->ClientCommand(pPlayer->edict(), "fadeout .75");
 			SetNextThink( m_delayUntil + .2f );
 		}
 		else 

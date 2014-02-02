@@ -9383,10 +9383,11 @@ void CBasePlayer::SetLaserCrosshairPosition( void )
 	if ( !m_laserCrosshair || !pViewModel )
 		return;
 
-	Vector origin, forward, traceEnd;
+	Vector origin, forward, right, up, traceEnd;
 	pViewModel->GetAttachment("muzzle", origin, &forward);
-
-	origin = Weapon_ShootPosition(); 
+	
+	VectorVectors(forward, right, up);
+	origin = Weapon_ShootPosition() + up*3; 
 
 	traceEnd = origin + ( forward * MAX_TRACE_LENGTH );
 	trace_t tr;

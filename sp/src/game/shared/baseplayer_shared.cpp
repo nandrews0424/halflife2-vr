@@ -24,6 +24,7 @@
 	#define CRecipientFilter C_RecipientFilter
 	#include "sourcevr/isourcevirtualreality.h"
 
+
 #else
 
 	#include "iservervehicle.h"
@@ -163,6 +164,10 @@ void CBasePlayer::ItemPreFrame()
 	// Handle use events
 	PlayerUse();
 
+#if !defined( CLIENT_DLL )
+	SetLaserCrosshairPosition();
+#endif
+
 	CBaseCombatWeapon *pActive = GetActiveWeapon();
 
 	// Allow all the holstered weapons to update
@@ -191,12 +196,6 @@ void CBasePlayer::ItemPreFrame()
 		return;
 #endif
 
-#if !defined( CLIENT_DLL )
-	if ( GetActiveWeapon() )
-	{
-		SetLaserCrosshairPosition();
-	}
-#endif
 
 	pActive->ItemPreFrame();
 }
@@ -312,14 +311,16 @@ const QAngle &CBasePlayer::EyeAngles( )
 	// NOTE: Viewangles are measured *relative* to the parent's coordinate system
 	CBaseEntity *pMoveParent = const_cast<CBasePlayer*>(this)->GetMoveParent();
 
+	QAngle angle = LocalEyeAngles();
+
 	if ( !pMoveParent )
 	{
-		return pl.v_angle;
+		return angle;
 	}
 
 	// FIXME: Cache off the angles?
 	matrix3x4_t eyesToParent, eyesToWorld;
-	AngleMatrix( pl.v_angle, eyesToParent );
+	AngleMatrix( angle, eyesToParent );
 	ConcatTransforms( pMoveParent->EntityToWorldTransform(), eyesToParent, eyesToWorld );
 
 	static QAngle angEyeWorld;
@@ -330,7 +331,16 @@ const QAngle &CBasePlayer::EyeAngles( )
 
 const QAngle &CBasePlayer::LocalEyeAngles()
 {
-	return pl.v_angle;
+	return pl.v_angle;  // TODO: it'd be nice to have proper eye angles for various reasons across the board...
+
+	#if defined( CLIENT_DLL )
+		// Use the actual eye angles on the client..
+		QAngle angle;
+		g_ClientVirtualReality.GetEyeAngles(angle);
+		return angle;
+	#else
+		return pl.v_angle;
+	#endif
 }
 
 //-----------------------------------------------------------------------------

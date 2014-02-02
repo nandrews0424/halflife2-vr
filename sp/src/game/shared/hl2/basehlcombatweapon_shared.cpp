@@ -158,6 +158,9 @@ bool CBaseHLCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 	if ( BaseClass::Holster( pSwitchingTo ) )
 	{
 
+
+#if !defined( CLIENT_DLL )
+
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer != NULL )
 		{
@@ -165,6 +168,7 @@ bool CBaseHLCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 			if ( pViewModel != NULL )
 				StopParticleEffects(pViewModel);	
 		}
+#endif
 		
 		m_flHolsterTime = gpGlobals->curtime;
 		return true;

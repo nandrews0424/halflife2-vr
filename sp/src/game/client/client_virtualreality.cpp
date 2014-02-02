@@ -1643,3 +1643,8 @@ void CClientVirtualReality::StartupComplete()
 		Activate();
 }
 
+
+void CClientVirtualReality::GetEyeAngles( QAngle & eyeAngles )
+{
+	MatrixAngles(m_WorldFromMidEye.As3x4(), eyeAngles);
+}

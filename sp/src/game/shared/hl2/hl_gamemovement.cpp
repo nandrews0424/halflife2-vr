@@ -1112,6 +1112,10 @@ bool CHL2GameMovement::LadderMove( void )
 		mv->m_vecVelocity.Init();
 	}
 
+	// NA TODO: is ladder climb vec not registering or is it an issue with clipping....
+	Msg("HLGamveMovment Ladder Climb Vec: %2f %2f %2f \n", mv->m_vecVelocity.x, mv->m_vecVelocity.y, mv->m_vecVelocity.z);
+
+
 	return true;
 }
 

@@ -97,6 +97,8 @@ public:
 	void AlignTorsoAndViewToWeapon();
 	void PostProcessFrame( StereoEye_t eEye );
 	void OverlayHUDQuadWithUndistort( const CViewSetup &view, bool bDoUndistort, bool bBlackout, bool bTranslucent );
+	void GetEyeAngles( QAngle & eyeAngles );
+
 
 	//---------------------------------------------------------
 	// Enter/leave VR mode

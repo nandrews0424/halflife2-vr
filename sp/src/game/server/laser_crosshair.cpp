@@ -40,7 +40,7 @@ CLaserCrosshair *CLaserCrosshair::Create( const Vector &origin, CBaseEntity *pOw
 	pLaserDot->SetMoveType( MOVETYPE_NONE );
 	pLaserDot->AddSolidFlags( FSOLID_NOT_SOLID );
 	pLaserDot->AddEffects( EF_NOSHADOW );
-	UTIL_SetSize( pLaserDot, vec3_origin, vec3_origin );
+UTIL_SetSize( pLaserDot, vec3_origin, vec3_origin );
 
 	//Create the graphic
 	pLaserDot->SpriteInit( "sprites/laserdot.vmt", origin );
