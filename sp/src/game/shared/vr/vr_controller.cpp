@@ -52,6 +52,11 @@ static ConVar mt_swap_hydras( "mt_swap_hydras", "0", 0, "Flip the right & left h
 static ConVar mt_menu_control_mode( "mt_menu_control_mode", "0", FCVAR_ARCHIVE, "Control the mouse in menu with 0 = Right joystick, 1 = Right hand position, 2 = Both");
 static ConVar mt_tactical_haptics( "mt_tactical_haptics", "0", FCVAR_ARCHIVE, "Special mode for the hydra orientation needed for the tactical haptics guys' setup");
 
+// TODO: once we've cleaned up all the calibrations making it clearer, reenable this...
+// static ConVar mt_calibration_offset_forward( "mt_calibration_offset_forward", "3", FCVAR_ARCHIVE, "Forward offset for calibration position (bigger pushes weapon further forward)");
+static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "16", FCVAR_ARCHIVE, "Downward offset for calibration position (bigger pushes weapon further down)");
+
+
 MotionTracker* _motionTracker;
 
 #define MM_TO_INCHES(x) (x/1000.f)*(1/METERS_PER_INCH)
@@ -119,8 +124,8 @@ MotionTracker::MotionTracker()
 
 	sixenseInitialize();
 
-	_rhandCalibration.Identity();
-
+	_rhandCalibration.Identity(); // _rhandCalibration is the calibration between sixense and the torso coordinate space
+	
 	PositionMatrix(Vector(-1, 0, -11.5), _eyesToTorsoTracker);
 	
 	_controlMode = (MotionControlMode_t) mt_control_mode.GetInt();
@@ -200,19 +205,26 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
 	MatrixPosition(_eyesToTorsoTracker, vEyes);
+
+	// weaponMatrix is in sixense coordinate space
+	// torsoMatrix is in sixense coordinate space
 	
+	VectorRotate(vEyes, _sixenseToWorld, vEyes);
+	VectorRotate(vEyes, _rhandCalibration.As3x4(), vEyes);
+	
+	// TODO: still getting weird behavior with the eye forward offset
+	// it is converted into the calibrated sixense space, and is then combined with the weapon offset (not yet in calibrated space)
+	// and is then
+
 	Vector vEyesToWeapon = (vWeapon - _vecBaseToTorso)  + vEyes;			// was ( weapon - torso ) but since at this point the torso changes haven't been applied (get overridden in the view), that's unnecessary...
 	
 	PositionMatrix(vEyesToWeapon, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
 	
-	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);			// project weapon matrix by the base engine yaw
-	MatrixPosition(weaponMatrix, weaponPos);								// get the angles back off
-	
-	
+	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);			// _sixenseToWorld converts to torso relative
 	MatrixMultiply(_rhandCalibration.As3x4(), weaponMatrix, weaponMatrix);  // adjust the weapon angles per the calibration
 
-	
-	MatrixAngles(weaponMatrix, vmangles);									// get the angles back off after applying the calibration
+	MatrixPosition(weaponMatrix, weaponPos);								// get the angles & positions back off
+	MatrixAngles(weaponMatrix, vmangles);									
 		
 	vmorigin += weaponPos;
 }
@@ -227,15 +239,16 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 
 	matrix3x4_t weaponMatrix = getTrackedRightHand();
 		
-	// get raw torso and weap positions, construct the distance from the diff of those two + the distance to the eyes from a properly calibrated torso tracker...
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
 	MatrixPosition(_eyesToTorsoTracker, vEyes);
+	// TODO same issue here as before, eyeToTorso must be adjusted to torso coordinates in game for eye offset to work properly
 	
 	offset = (vWeapon - _vecBaseToTorso)  + vEyes;				
 
 	PositionMatrix(offset, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
-	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);	// project weapon matrix by the base engine yaw
+	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);	// convert from sixense to torso coordinates
+	MatrixMultiply(_rhandCalibration.As3x4(), weaponMatrix, weaponMatrix);  // from torso to adjusted... todo: just for clarity, it should be sixenseToCalibrated -> calibratedToTorso
 	MatrixPosition(weaponMatrix, offset);							// get the position back off
 }
 
@@ -353,12 +366,7 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 	if ( !_initialized )
 		return;
 
-	if ( !isTrackingTorso() ) {
-		
-		Msg("Don't know how to calibrate without a torso reading\n");
-		return;	
-	}
-
+	
 	QAngle engineTorsoAngles; 
 	MatrixToAngles(torsoMatrix, engineTorsoAngles);
 	_baseEngineYaw = engineTorsoAngles.y;
@@ -367,18 +375,34 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 	// regardless of control mode, we snapshot the torso (lhand) tracker offset, the only change is how it's applied in the viewmodel offsets...
 	matrix3x4_t trackedTorso = getTrackedTorso();
 	MatrixGetTranslation(trackedTorso, _vecBaseToTorso);
-	
-
-	// todo: come up with a better way than this....
-	if ( false && gpGlobals->curtime < _lastCalibrated + .5 ) 
+		
+	if ( _controlMode == TRACK_BOTH_HANDS )
 	{
 		
-		Msg("Calibration double tapped, calibrating off current weapon angles \n");
-		_rhandCalibration = getTrackedRightHand(false);
-		_rhandCalibration.SetTranslation(Vector(0,0,0));
+		// With both hands, best way to calibrate is to have hands at shoulders
+		// and infer forward as perpendicular to the vector between the controllers
+		// removing the need to know the base station alignment
+
+		matrix3x4_t matRightHand = getTrackedRightHand();
+		Vector rightHand, leftHand, rightHandToLeft;
+		leftHand = _vecBaseToTorso;
+		MatrixGetTranslation(matRightHand, rightHand);
+		rightHandToLeft = leftHand - rightHand;
+		
+		Vector forward;
+		CrossProduct(rightHandToLeft.Normalized(), Vector(0,0,1), forward);
+		forward.z = 0;
+				
+		VectorMatrix(forward, _rhandCalibration.As3x4());
 		_rhandCalibration = _rhandCalibration.InverseTR();
 
-		// VR todo: if upside down, need to invert the z axis
+		// Now we reset vecBaseToTorso to be the midpoint between the two
+		_vecBaseToTorso = rightHand + rightHandToLeft/2.f;
+
+		// And we should also adjust the expected offset from head to "torso" b/c it's a bit harder to set perfectly otherwise..
+		
+		PositionMatrix(Vector(0, 0, -mt_calibration_offset_down.GetFloat()), _eyesToTorsoTracker);
+
 	}
 
 	_lastCalibrated = gpGlobals->curtime;

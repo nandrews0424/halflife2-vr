@@ -1,2 +1,0 @@
-copy D:\dev\projects\halflife2-vr\sp\game\mod_episodic\bin\*.dll D:\dev\projects\halflife2-vr\sp\game\mod_ep2\bin\
-"C:\Program Files (x86)\Steam\steamapps\common\Source SDK Base 2013 Singleplayer\hl2.exe" -novid -game "D:\dev\projects\halflife2-vr\sp\game\mod_ep2"
