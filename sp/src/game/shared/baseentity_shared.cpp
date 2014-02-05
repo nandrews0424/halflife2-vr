@@ -680,7 +680,10 @@ void CBaseEntity::ImpactTrace( trace_t *pTrace, int iDamageType, const char *pCu
 	data.m_flScale = scale;
 
 #ifdef CLIENT_DLL
-	data.m_hEntity = ClientEntityList().EntIndexToHandle( pEntity->entindex() );
+	if ( pEntity != NULL )
+	{
+		data.m_hEntity = ClientEntityList().EntIndexToHandle( pEntity->entindex() );
+	}
 #else
 	data.m_nEntIndex = pEntity->entindex();
 #endif
