@@ -1255,7 +1255,11 @@ void CClientVirtualReality::RenderHUDQuad( bool bBlackout, bool bTranslucent )
 		vbLL = 2 * vHead - vUR;
 		vbLR = 2 * vHead - vUL;
 
-		IMaterial *mymat = materials->FindMaterial( "vgui/HLVR_logo", TEXTURE_GROUP_VGUI );
+#if defined( HL2_EPISODIC )
+		IMaterial *mymat = materials->FindMaterial( "vgui/black", TEXTURE_GROUP_VGUI, false);
+#else
+		IMaterial *mymat = materials->FindMaterial( "vgui/HLVR_logo", TEXTURE_GROUP_VGUI, false);
+#endif
 		IMesh *pMesh = pRenderContext->GetDynamicMesh( true, NULL, NULL, mymat );
 
 		// Tube around the outside.
