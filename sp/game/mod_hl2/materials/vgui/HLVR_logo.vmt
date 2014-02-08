@@ -1,5 +1,5 @@
 UnlitGeneric
 {
-	$basetexture vgui/HLVR_logo
+	$basetexture vgui\menu_background
 	$translucent 1
 }

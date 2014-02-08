@@ -37,7 +37,6 @@ using sixenseMath::Vector4;
 using sixenseMath::Quat;
 using sixenseMath::Line;
 
-
 void mt_calibrate_f( void )
 {
     Msg("Beginning Motion Tracker Calibration.... \n");
@@ -51,11 +50,8 @@ static ConVar mt_control_mode( "mt_control_mode", "2", FCVAR_ARCHIVE, "Sets the 
 static ConVar mt_swap_hydras( "mt_swap_hydras", "0", 0, "Flip the right & left hydras");
 static ConVar mt_menu_control_mode( "mt_menu_control_mode", "0", FCVAR_ARCHIVE, "Control the mouse in menu with 0 = Right joystick, 1 = Right hand position, 2 = Both");
 static ConVar mt_tactical_haptics( "mt_tactical_haptics", "0", FCVAR_ARCHIVE, "Special mode for the hydra orientation needed for the tactical haptics guys' setup");
-
-// TODO: once we've cleaned up all the calibrations making it clearer, reenable this...
-// static ConVar mt_calibration_offset_forward( "mt_calibration_offset_forward", "3", FCVAR_ARCHIVE, "Forward offset for calibration position (bigger pushes weapon further forward)");
-static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "16", FCVAR_ARCHIVE, "Downward offset for calibration position (bigger pushes weapon further down)");
-
+static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "5", FCVAR_ARCHIVE, "Downward offset for calibration position (higher pushes weapon further down)");
+static ConVar mt_calibration_offset_forward( "mt_calibration_offset_forward", "0", FCVAR_ARCHIVE, "Forward offset for calibration position (higher moves weapon further forward per the same hand position)");
 
 MotionTracker* _motionTracker;
 
@@ -397,7 +393,7 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 		_rhandCalibration = _rhandCalibration.InverseTR();
 
 		// Now we reset vecBaseToTorso to be the midpoint between the two
-		_vecBaseToTorso = rightHand + rightHandToLeft/2.f;
+		_vecBaseToTorso = rightHand + rightHandToLeft/2.f + forward*-mt_calibration_offset_forward.GetFloat();
 
 		// And we should also adjust the expected offset from head to "torso" b/c it's a bit harder to set perfectly otherwise..
 		

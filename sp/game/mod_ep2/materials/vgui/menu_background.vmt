@@ -1,0 +1,5 @@
+UnlitGeneric
+{
+	$basetexture vgui/menu_background
+	$translucent 1
+}

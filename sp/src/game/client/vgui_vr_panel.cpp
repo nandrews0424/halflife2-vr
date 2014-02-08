@@ -54,25 +54,20 @@ CVRPanel::CVRPanel(vgui::VPANEL parent)
 	SetProportional( false );
 	SetVisible( true );
 	
-	SetSize(150, 150);
-	SetPos(350, 280);
+	SetSize(255, 255);
+	SetPos(398, 240);
 	
 	vgui::ivgui()->AddTickSignal( GetVPanel(), 100 );
 	
 	// Label
-	vgui::IScheme* scheme = vgui::scheme()->GetIScheme( vgui::scheme()->GetScheme( "ClientScheme" ) );
-	vgui::HFont font = scheme->GetFont( "MenuLarge" );
-	m_pStatus = new vgui::Label(this, "lbl", "Dock your hydras!");
-	m_pStatus->SetPos(10, 0);
-	m_pStatus->SetSize(180,40);
-	m_pStatus->SetFont(font);
-	m_pStatus->SetFgColor(Color(255, 0, 0, 200));
 	
 	// Image
 	m_pImage = new vgui::ImagePanel(this, "imgCalibrate");
 	m_pImage->SetImage("hydra_calibrate");
-	m_pImage->SetPos(27, 38);
-	m_pImage->SetSize(150, 150);
+	m_pImage->SetPos(0, 0);
+	m_pImage->SetSize(255, 255);
+	m_pImage->SetShouldScaleImage(true);
+	m_pImage->SetScaleAmount(.75);
 	
 
 	DevMsg("VRPanel has been constructed\n");
