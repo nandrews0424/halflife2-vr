@@ -67,7 +67,7 @@ ConVar vr_translation_limit( "vr_translation_limit", "10.0", 0, "How far the in-
 // HUD config values
 ConVar vr_render_hud_in_world( "vr_render_hud_in_world", "1" );
 ConVar vr_hud_max_fov( "vr_hud_max_fov", "70", FCVAR_ARCHIVE, "Max FOV of the HUD" );
-ConVar vr_hud_forward( "vr_hud_forward", "500", FCVAR_ARCHIVE, "Apparent distance of the HUD in inches" );
+ConVar vr_hud_forward( "vr_hud_forward", "96", FCVAR_ARCHIVE, "Apparent distance of the HUD in inches" );
 ConVar vr_hud_display_ratio( "vr_hud_display_ratio", "0.95", FCVAR_ARCHIVE );
 ConVar vr_hud_never_overlay( "vr_hud_never_overlay", "0" );
 
@@ -1255,7 +1255,7 @@ void CClientVirtualReality::RenderHUDQuad( bool bBlackout, bool bTranslucent )
 		vbLL = 2 * vHead - vUR;
 		vbLR = 2 * vHead - vUL;
 
-		IMaterial *mymat = materials->FindMaterial( "vgui/black", TEXTURE_GROUP_VGUI );
+		IMaterial *mymat = materials->FindMaterial( "vgui/HLVR_logo", TEXTURE_GROUP_VGUI );
 		IMesh *pMesh = pRenderContext->GetDynamicMesh( true, NULL, NULL, mymat );
 
 		// Tube around the outside.
