@@ -44,6 +44,7 @@ public:
 		tick_count = 0;
 		viewangles.Init();
 		viewToWeaponOffset.Init();
+		viewToLeftHandOffset.Init();
 		eyeOffset.Init();
 		forwardmove = 0.0f;
 		sidemove = 0.0f;
@@ -72,6 +73,7 @@ public:
 		tick_count			= src.tick_count;
 		viewangles			= src.viewangles;
 		viewToWeaponOffset 	= src.viewToWeaponOffset;
+		viewToLeftHandOffset= src.viewToLeftHandOffset;
 		eyeOffset 			= src.eyeOffset;
 		forwardmove			= src.forwardmove;
 		sidemove			= src.sidemove;
@@ -108,6 +110,7 @@ public:
 		CRC32_ProcessBuffer( &crc, &tick_count, sizeof( tick_count ) );
 		CRC32_ProcessBuffer( &crc, &viewangles, sizeof( viewangles ) );
 		CRC32_ProcessBuffer( &crc, &viewToWeaponOffset, sizeof( viewToWeaponOffset ) );
+		CRC32_ProcessBuffer( &crc, &viewToLeftHandOffset, sizeof( viewToLeftHandOffset ) );
 		CRC32_ProcessBuffer( &crc, &eyeOffset, sizeof( eyeOffset ) );
 		CRC32_ProcessBuffer( &crc, &torsoYaw, sizeof( torsoYaw ) );    
 		CRC32_ProcessBuffer( &crc, &forwardmove, sizeof( forwardmove ) );   
@@ -169,6 +172,7 @@ public:
 
 	// Offset from viewpoint to weapon origin based on tracking...
 	Vector  viewToWeaponOffset;
+	Vector  viewToLeftHandOffset;
 
 	// Tracked head offset...
 	Vector  eyeOffset;

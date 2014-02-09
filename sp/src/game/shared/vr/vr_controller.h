@@ -40,6 +40,7 @@ public:
 	void	overrideJoystickInputs(float& lx, float& ly, float& rx, float& ry);		// in_joystick, allows hydra inputs to apply over others
 	void	updateSixenseButtons();											// checks sixense controller for buttons states and emulates keypress events...
 	void	getEyeToWeaponOffset(Vector& offset);
+	void	getEyeToLeftHandOffset(Vector& offset);
 
 	float	getHudPanelAlpha(const Vector& hudPanelForward, const Vector& eyesForward, float fadeFactor);
 	bool	showMenuPanel( void );

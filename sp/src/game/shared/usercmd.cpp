@@ -202,6 +202,40 @@ void WriteUsercmd( bf_write *buf, const CUserCmd *to, const CUserCmd *from )
 	}
 
 
+	// left hand offset
+
+	if ( to->viewToLeftHandOffset[ 0 ] != from->viewToLeftHandOffset[ 0 ] )
+	{
+		buf->WriteOneBit( 1 );
+		buf->WriteFloat( to->viewToLeftHandOffset[ 0 ] );
+	}
+	else
+	{
+		buf->WriteOneBit( 0 );
+	}
+
+	if ( to->viewToLeftHandOffset[ 1 ] != from->viewToLeftHandOffset[ 1 ] )
+	{
+		buf->WriteOneBit( 1 );
+		buf->WriteFloat( to->viewToLeftHandOffset[ 1 ] );
+	}
+	else
+	{
+		buf->WriteOneBit( 0 );
+	}
+
+	if ( to->viewToLeftHandOffset[ 2 ] != from->viewToLeftHandOffset[ 2 ] )
+	{
+		buf->WriteOneBit( 1 );
+		buf->WriteFloat( to->viewToLeftHandOffset[ 2 ] );
+	}
+	else
+	{
+		buf->WriteOneBit( 0 );
+	}
+
+
+
 	// eye offset
 
 	if ( to->eyeOffset[ 0 ] != from->eyeOffset[ 0 ] )
@@ -383,6 +417,22 @@ void ReadUsercmd( bf_read *buf, CUserCmd *move, CUserCmd *from )
 	if ( buf->ReadOneBit() )
 	{
 		move->viewToWeaponOffset[2] = buf->ReadFloat();
+	}
+
+	// Read left hand offset viewToLeftHandOffset
+	if ( buf->ReadOneBit() )
+	{
+		move->viewToLeftHandOffset[0] = buf->ReadFloat();
+	}
+
+	if ( buf->ReadOneBit() )
+	{
+		move->viewToLeftHandOffset[1] = buf->ReadFloat();
+	}
+
+	if ( buf->ReadOneBit() )
+	{
+		move->viewToLeftHandOffset[2] = buf->ReadFloat();
 	}
 
 

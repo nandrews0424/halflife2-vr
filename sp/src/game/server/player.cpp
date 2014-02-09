@@ -3647,6 +3647,7 @@ void CBasePlayer::PlayerRunCommand(CUserCmd *ucmd, IMoveHelper *moveHelper)
 
 	// Set motion tracker values on server version of player
 	VectorCopy(ucmd->viewToWeaponOffset, m_eyeToWeaponOffset);
+	VectorCopy(ucmd->viewToLeftHandOffset, m_eyeToWeaponOffset);
 	VectorCopy(ucmd->eyeOffset, m_eyeOffset);
 	m_torsoAngles = QAngle(0, ucmd->torsoYaw, 0);
 

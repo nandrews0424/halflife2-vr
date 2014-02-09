@@ -116,6 +116,7 @@ private:
 		
 	float	m_fLastReloadActivityDone;
 	Activity m_NextReloadActivity;
+	bool	m_bClipEjected;
 
 	inline bool LastReloadActivityDone() { return gpGlobals->curtime > m_fLastReloadActivityDone; }
 	inline void SetNextReloadActivity(Activity a) 
@@ -123,9 +124,10 @@ private:
 		m_NextReloadActivity = a;
 		m_fLastReloadActivityDone = gpGlobals->curtime + SequenceDuration(); 
 	}
-	
-	
 
+	float	m_fPrevHandDistance;
+	float	m_fPrevHandDistanceChecked;
+	bool	ShouldInsertClip( void );
 };
 
 
@@ -179,7 +181,11 @@ CWeaponPistol::CWeaponPistol( void )
 	m_fMaxRange2		= 200;
 
 	m_bFiresUnderwater	= true;
+	m_bClipEjected		= false;
 
+	m_fPrevHandDistance = 0;
+	m_fPrevHandDistanceChecked = 0;
+	
 	m_fLastReloadActivityDone = 0;
 	m_NextReloadActivity = ACT_VM_RELOAD_RELEASE;
 }
@@ -345,10 +351,8 @@ void CWeaponPistol::ItemPostFrame( void )
 				SendWeaponAnim(ACT_VM_RELOAD_NOCLIP);
 
 						
-			if ( m_fLastReloadActivityDone + 1.f < gpGlobals->curtime )
+			if ( ShouldInsertClip() )
 			{
-				Msg("Sending insert animation \n");
-				
 				if ( m_iClip1 <= 0 )
 					SendWeaponAnim( ACT_VM_RELOAD_INSERT_EMPTY );
 				else
@@ -357,13 +361,20 @@ void CWeaponPistol::ItemPostFrame( void )
 				SetNextReloadActivity(ACT_VM_RELOAD);  //using
 			}
 		}
+		else if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && !m_bClipEjected && gpGlobals->curtime >= m_fLastReloadActivityDone - .15 ) // should be equivalent behavior....
+		{
+			// Release the clip timed within last 10th of a sec of release animation
+			CEffectData data;
+			data.m_nEntIndex = entindex();
+			DispatchEffect( "PistolClipEject", data );
+			m_bClipEjected = true;
+		}
 		else if ( m_NextReloadActivity == ACT_VM_RELOAD && LastReloadActivityDone() )  // we're done reloading here...
 		{
-			Msg("Reload complete, moving ammo from inventory to weapon... \n");
-			
 			m_flTimeWeaponIdle		= gpGlobals->curtime;
 			m_flNextPrimaryAttack	= gpGlobals->curtime;
 			m_bInReload = false;
+			m_bClipEjected = false;
 
 			SendWeaponAnim( ACT_VM_IDLE );
 			// Play the player's reload animation
@@ -394,6 +405,38 @@ void CWeaponPistol::ItemPostFrame( void )
 		DryFire();
 	}
 }
+
+bool CWeaponPistol::ShouldInsertClip( void )
+{
+	// TODO: just print some stuff here.....
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	if ( pOwner == NULL )
+		return true;
+	
+	Vector leftHandOffset = pOwner->EyeToLeftHandOffset();
+
+	// if not tracking left hand 
+	if ( leftHandOffset.Length() == 0 )
+		return m_fLastReloadActivityDone + .66f < gpGlobals->curtime;
+
+	Vector weaponOffset = pOwner->EyeToWeaponOffset();
+	
+	float handDistance = (weaponOffset - leftHandOffset).Length();
+	
+	if ( m_fPrevHandDistance == 0 )
+	{
+		m_fPrevHandDistance = handDistance;
+		m_fPrevHandDistanceChecked = gpGlobals->curtime - 1; // doesn't matter
+	}
+
+	float handClosingSpeed = (m_fPrevHandDistance - handDistance) / (  gpGlobals->curtime - m_fPrevHandDistanceChecked );
+	
+	m_fPrevHandDistance = handDistance;
+	m_fPrevHandDistanceChecked = gpGlobals->curtime;
+		
+	return handDistance <= 15 && handClosingSpeed >= 35;  //arbitrary magic numbers
+}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -432,9 +475,6 @@ bool CWeaponPistol::Reload( void )
 			SendWeaponAnim( ACT_VM_RELOAD_RELEASE );
 
 		// Eject a clip
-		CEffectData data;
-		data.m_nEntIndex = entindex();
-		DispatchEffect( "PistolClipEject", data );
 		SetNextReloadActivity( ACT_VM_RELOAD_NOCLIP  );
 	}
 

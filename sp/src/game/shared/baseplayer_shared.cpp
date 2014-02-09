@@ -844,6 +844,10 @@ Vector CBasePlayer::EyeToWeaponOffset( )
 	return m_eyeToWeaponOffset;
 }
 
+Vector CBasePlayer::EyeToLeftHandOffset( )
+{
+	return m_eyeToLeftHandOffset;
+}
 
 Vector CBasePlayer::Weapon_ShootPosition( )
 {

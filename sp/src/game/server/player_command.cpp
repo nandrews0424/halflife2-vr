@@ -362,8 +362,9 @@ void CPlayerMove::RunCommand ( CBasePlayer *player, CUserCmd *ucmd, IMoveHelper 
 	}
 
 	// Assign the tracked weapon offset and other motion tracked info...
-	player->m_eyeToWeaponOffset = ucmd->viewToWeaponOffset;
 	player->m_eyeOffset = ucmd->eyeOffset;
+	player->m_eyeToWeaponOffset = ucmd->viewToWeaponOffset;
+	player->m_eyeToLeftHandOffset = ucmd->viewToLeftHandOffset;
 	player->m_torsoAngles = QAngle(0, ucmd->torsoYaw, 0);
 
 	/*
