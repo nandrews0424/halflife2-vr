@@ -337,11 +337,13 @@ public:
 	
 	Vector 					m_eyeOffset;
 	Vector 					m_eyeToWeaponOffset;
+	Vector 					m_eyeToLeftHandOffset;
 	QAngle 					m_torsoAngles;
 
 	virtual Vector			EyePosition( );			// position of eyes
 	const QAngle			&EyeAngles( );
 	Vector 					EyeToWeaponOffset();
+	Vector 					EyeToLeftHandOffset();
 	QAngle 					TorsoAngles( );
 	void					EyePositionAndVectors( Vector *pPosition, Vector *pForward, Vector *pRight, Vector *pUp );
 	virtual const QAngle	&LocalEyeAngles();		// Direction of eyes

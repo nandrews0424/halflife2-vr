@@ -249,6 +249,35 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 }
 
 
+void MotionTracker::getEyeToLeftHandOffset(Vector& offset)
+{
+	if ( !_initialized ) 
+	{
+		offset.Init();
+		return;
+	}
+
+	matrix3x4_t leftHandMatrix = getTrackedTorso(); // todo: shoud b
+		
+	Vector vWeapon, vEyes;
+	MatrixPosition(leftHandMatrix, vWeapon);
+	MatrixPosition(_eyesToTorsoTracker, vEyes);
+	// TODO same issue here as before, eyeToTorso must be adjusted to torso coordinates in game for eye offset to work properly
+	
+	offset = (vWeapon - _vecBaseToTorso)  + vEyes;				
+
+	PositionMatrix(offset, leftHandMatrix);					// position is reset rather than distance to base to distance to torso tracker
+	MatrixMultiply(_sixenseToWorld, leftHandMatrix, leftHandMatrix);	// convert from sixense to torso coordinates
+	MatrixMultiply(_rhandCalibration.As3x4(), leftHandMatrix, leftHandMatrix);  // from torso to adjusted... todo: just for clarity, it should be sixenseToCalibrated -> calibratedToTorso
+	MatrixPosition(leftHandMatrix, offset);							// get the position back off
+}
+
+
+
+
+
+
+
 void MotionTracker::getViewOffset(Vector& offset)
 {
 	if ( !_initialized || _controlMode == TRACK_BOTH_HANDS  )
