@@ -17,6 +17,7 @@
 #include "game.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#include "te_effect_dispatch.h"
 #include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -378,13 +379,11 @@ void CWeaponPistol::ItemPostFrame( void )
 		return;
 	}
 
-
-	if ( m_iClip1 <= 0 )
+	if ( m_iClip1 <= 0 && GetActivity() != ACT_VM_LASTFIRE )
 	{
-		SendWeaponAnim(ACT_VM_RELOAD_NOCLIP_EMPTY);	// this shouldn't be noclip...		
+		SendWeaponAnim(ACT_VM_IDLE_EMPTY);
 	}
-
-
+			
 	//Allow a refire as fast as the player can click
 	if ( ( ( pOwner->m_nButtons & IN_ATTACK ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
 	{
@@ -394,8 +393,6 @@ void CWeaponPistol::ItemPostFrame( void )
 	{
 		DryFire();
 	}
-
-
 }
 
 //-----------------------------------------------------------------------------
@@ -405,7 +402,7 @@ void CWeaponPistol::ItemPostFrame( void )
 Activity CWeaponPistol::GetPrimaryAttackActivity( void )
 {
 	if ( m_iClip1 == 1 )
-		return ACT_VM_PRIMARYATTACK; // TODO: different primary attack for ending empty
+		return ACT_VM_LASTFIRE; // TODO: different primary attack for ending empty
 
 	if ( m_nNumShotsFired < 1 )
 		return ACT_VM_PRIMARYATTACK;
@@ -433,7 +430,11 @@ bool CWeaponPistol::Reload( void )
 			SendWeaponAnim( ACT_VM_RELOAD_RELEASE_EMPTY );
 		else
 			SendWeaponAnim( ACT_VM_RELOAD_RELEASE );
-				
+
+		// Eject a clip
+		CEffectData data;
+		data.m_nEntIndex = entindex();
+		DispatchEffect( "PistolClipEject", data );
 		SetNextReloadActivity( ACT_VM_RELOAD_NOCLIP  );
 	}
 

@@ -350,16 +350,8 @@ void CWeapon357::PrimaryAttack( void )
 
 	if ( m_iClip1 <= 0 )
 	{
-		if ( false && !m_bFireOnEmpty )
-		{ 
-			Reload();
-		}
-		else
-		{
-			WeaponSound( EMPTY );
-			m_flNextPrimaryAttack = 0.15;
-		}
-
+		WeaponSound( EMPTY );
+		m_flNextPrimaryAttack = 0.15;
 		return;
 	}
 

@@ -1707,6 +1707,40 @@ void CTempEnts::EjectBrass( const Vector &pos1, const QAngle &angles, const QAng
 	pTemp->die = gpGlobals->curtime + 15.f + random->RandomFloat( 0.0f, 1.0f );	// Add an extra 0-1 secs of life	
 }
 
+
+
+void CTempEnts::EjectClip( const Vector& pos1, const QAngle& angles, const Vector& baseVelocity, int type )
+{
+	const model_t *pModel = m_pClips[type];
+	
+	if ( pModel == NULL )
+		return;
+
+	C_LocalTempEntity	*pTemp = TempEntAlloc( pos1, pModel );
+
+	if ( pTemp == NULL )
+		return;
+
+	// TODO: need hit sound for clip
+	pTemp->hitSound = BOUNCE_SHELL;
+	
+	pTemp->m_nBody	= 0;
+	pTemp->flags |= ( FTENT_COLLIDEWORLD | FTENT_FADEOUT | FTENT_GRAVITY | FTENT_ROTATE );
+	pTemp->m_vecTempEntAngVelocity.Init();
+	
+	//Face forward
+	pTemp->SetAbsAngles( angles );
+	pTemp->SetRenderMode( kRenderNormal );
+	pTemp->tempent_renderamt = 255;		// Set this for fadeout
+
+	Vector  forward, right, up;
+	AngleVectors(angles, &forward, &right, &up);
+		
+	pTemp->SetVelocity( baseVelocity + up*-16 ); // set a bit of up velocity?
+	pTemp->die = gpGlobals->curtime + 15.f + random->RandomFloat( 0.0f, 1.0f );	// Add an extra 0-1 secs of life	
+}
+
+
 //-----------------------------------------------------------------------------
 // Purpose: Create some simple physically simulated models
 //-----------------------------------------------------------------------------
@@ -2422,6 +2456,10 @@ void CTempEnts::LevelInit()
 	m_pShells[1] = (model_t *) engine->LoadModel( "models/weapons/rifleshell.mdl" );
 	m_pShells[2] = (model_t *) engine->LoadModel( "models/weapons/shotgun_shell.mdl" );
 	m_pShells[3] = (model_t *) engine->LoadModel( "models/weapons/Python_shell.mdl" );
+	
+	m_pClips[0] = (model_t *) engine->LoadModel( "models/weapons/Pistol_clip.mdl" );
+	m_pClips[1] = (model_t *) engine->LoadModel( "models/weapons/Smg1_clip.mdl" );
+
 #endif
 
 #if defined( HL1_CLIENT_DLL )

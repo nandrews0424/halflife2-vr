@@ -54,6 +54,8 @@ public:
 	virtual void				MuzzleFlash( int type, ClientEntityHandle_t hEntity, int attachmentIndex, bool firstPerson ) = 0;
 	virtual void				MuzzleFlash( const Vector &pos1, const QAngle &angles, int type, ClientEntityHandle_t hEntity, bool firstPerson ) = 0;
 	virtual void				EjectBrass( const Vector& pos1, const QAngle& angles, const QAngle& gunAngles, int type, bool noVelocity ) = 0;
+	virtual void				EjectClip( const Vector& pos1, const QAngle& angles, const Vector& baseVelocity, int type ) = 0;
+	
 	virtual C_LocalTempEntity   *SpawnTempModel( const model_t *pModel, const Vector &vecOrigin, const QAngle &vecAngles, const Vector &vecVelocity, float flLifeTime, int iFlags ) = 0;
 	virtual void				BreakModel( const Vector &pos, const QAngle &angles, const Vector &size, const Vector &dir, float random, float life, int count, int modelIndex, char flags) = 0;
 	virtual void				Bubbles( const Vector &mins, const Vector &maxs, float height, int modelIndex, int count, float speed ) = 0;
@@ -122,6 +124,7 @@ public:
 
 	virtual void			PlaySound ( C_LocalTempEntity *pTemp, float damp );
 	virtual void			EjectBrass( const Vector &pos1, const QAngle &angles, const QAngle &gunAngles, int type, bool noVelocity );
+	virtual void				EjectClip( const Vector& pos1, const QAngle& angles, const Vector& baseVelocity, int type ) ;
 	virtual C_LocalTempEntity		*SpawnTempModel( const model_t *pModel, const Vector &vecOrigin, const QAngle &vecAngles, const Vector &vecVelocity, float flLifeTime, int iFlags );
 	void					RocketFlare( const Vector& pos );
 	void					HL1EjectBrass( const Vector &vecPosition, const QAngle &angAngles, const Vector &vecVelocity, int nType );
@@ -147,6 +150,7 @@ private:
 	struct model_t			*m_pSpriteMuzzleFlash[10];
 	struct model_t			*m_pSpriteAR2Flash[4];
 	struct model_t			*m_pShells[4];
+	struct model_t			*m_pClips[2];
 	struct model_t			*m_pSpriteCombineFlash[2];
 
 #if defined( HL1_CLIENT_DLL )

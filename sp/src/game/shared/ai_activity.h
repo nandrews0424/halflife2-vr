@@ -2125,6 +2125,7 @@ typedef enum
 	ACT_VM_RELOAD_NOCLIP_EMPTY,
 	ACT_VM_RELOAD_INSERT,
 	ACT_VM_RELOAD_INSERT_EMPTY,
+	ACT_VM_LASTFIRE,
 	
 	// this is the end of the global activities, private per-monster activities start here.
 	LAST_SHARED_ACTIVITY
