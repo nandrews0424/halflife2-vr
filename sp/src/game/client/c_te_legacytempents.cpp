@@ -1726,7 +1726,7 @@ void CTempEnts::EjectClip( const Vector& pos1, const QAngle& angles, const Vecto
 	
 	pTemp->m_nBody	= 0;
 	pTemp->flags |= ( FTENT_COLLIDEWORLD | FTENT_FADEOUT | FTENT_GRAVITY | FTENT_ROTATE );
-	pTemp->m_vecTempEntAngVelocity.Init();
+	
 	
 	//Face forward
 	pTemp->SetAbsAngles( angles );
@@ -1736,7 +1736,11 @@ void CTempEnts::EjectClip( const Vector& pos1, const QAngle& angles, const Vecto
 	Vector  forward, right, up;
 	AngleVectors(angles, &forward, &right, &up);
 		
-	pTemp->SetVelocity( baseVelocity + up*-16 ); // set a bit of up velocity?
+	pTemp->SetVelocity( baseVelocity + up*-100 ); // set a bit of up velocity?
+	pTemp->m_vecTempEntAngVelocity[0] = random->RandomFloat(-40,40);
+	pTemp->m_vecTempEntAngVelocity[1] = random->RandomFloat(-40,40);
+	pTemp->m_vecTempEntAngVelocity[2] = random->RandomFloat(-40,40);
+	
 	pTemp->die = gpGlobals->curtime + 15.f + random->RandomFloat( 0.0f, 1.0f );	// Add an extra 0-1 secs of life	
 }
 
@@ -3269,7 +3273,7 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 	// adding some brass...
 	QAngle shellAngle;
 	        
-	up.z += .25; // up the angle a touch...
+	up.z += .5; // up the angle a touch...
 	VectorAngles(up, shellAngle);
 	// todo: get the attachment
 	Vector ejectionOrigin;
