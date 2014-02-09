@@ -2107,8 +2107,7 @@ typedef enum
 	ACT_SPELL_VM_ARM, 
 	ACT_SPELL_VM_FIRE,
 
-	// this is the end of the global activities, private per-monster activities start here.
-	LAST_SHARED_ACTIVITY,
+
 
 	// HLVR animations
 	ACT_VM_HITDYNAMIC,
@@ -2118,7 +2117,18 @@ typedef enum
 	ACT_VM_RELOAD_FULL_DYNAMIC,
 	ACT_VM_RELOAD_EMPTY_DYNAMIC,
 	ACT_VM_RELOAD_INSERT_DYNAMIC,
-	ACT_VM_RELOAD_CLOSE_DYNAMIC
+	ACT_VM_RELOAD_CLOSE_DYNAMIC,
+
+	ACT_VM_RELOAD_RELEASE,
+	ACT_VM_RELOAD_RELEASE_EMPTY,
+	ACT_VM_RELOAD_NOCLIP,
+	ACT_VM_RELOAD_NOCLIP_EMPTY,
+	ACT_VM_RELOAD_INSERT,
+	ACT_VM_RELOAD_INSERT_EMPTY,
+	
+	// this is the end of the global activities, private per-monster activities start here.
+	LAST_SHARED_ACTIVITY
+	
 	
 } Activity;
 

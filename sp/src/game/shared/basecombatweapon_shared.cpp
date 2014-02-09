@@ -1769,31 +1769,19 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	// -----------------------
 	if (!((pOwner->m_nButtons & IN_ATTACK) || (pOwner->m_nButtons & IN_ATTACK2) || (CanReload() && pOwner->m_nButtons & IN_RELOAD)))
 	{
-		// no fire buttons down or reloading
-		if ( !ReloadOrSwitchWeapons() && ( m_bInReload == false ) )
-		{
-			WeaponIdle();
-		}
+		WeaponIdle();
 	}
 }
 
 void CBaseCombatWeapon::HandleFireOnEmpty()
 {
-	// If we're already firing on empty, reload if we can
-	if ( m_bFireOnEmpty )
+
+	if (m_flNextEmptySoundTime < gpGlobals->curtime)
 	{
-		ReloadOrSwitchWeapons();
-		m_fFireDuration = 0.0f;
+		WeaponSound(EMPTY);
+		m_flNextEmptySoundTime = gpGlobals->curtime + 0.5;
 	}
-	else
-	{
-		if (m_flNextEmptySoundTime < gpGlobals->curtime)
-		{
-			WeaponSound(EMPTY);
-			m_flNextEmptySoundTime = gpGlobals->curtime + 0.5;
-		}
-		m_bFireOnEmpty = true;
-	}
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1999,6 +1987,7 @@ bool CBaseCombatWeapon::DefaultReload( int iClipSize1, int iClipSize2, int iActi
 	SendWeaponAnim( iActivity );
 
 	// Play the player's reload animation
+
 	if ( pOwner->IsPlayer() )
 	{
 		( ( CBasePlayer * )pOwner)->SetAnimation( PLAYER_RELOAD );

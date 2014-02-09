@@ -60,7 +60,7 @@ public:
 	Activity	GetPrimaryAttackActivity( void );
 
 	virtual bool Reload( void );
-
+	
 	virtual const Vector& GetBulletSpread( void )
 	{		
 		// Handle NPCs first
@@ -112,6 +112,19 @@ private:
 	float	m_flLastAttackTime;
 	float	m_flAccuracyPenalty;
 	int		m_nNumShotsFired;
+		
+	float	m_fLastReloadActivityDone;
+	Activity m_NextReloadActivity;
+
+	inline bool LastReloadActivityDone() { return gpGlobals->curtime > m_fLastReloadActivityDone; }
+	inline void SetNextReloadActivity(Activity a) 
+	{ 
+		m_NextReloadActivity = a;
+		m_fLastReloadActivityDone = gpGlobals->curtime + SequenceDuration(); 
+	}
+	
+	
+
 };
 
 
@@ -165,6 +178,9 @@ CWeaponPistol::CWeaponPistol( void )
 	m_fMaxRange2		= 200;
 
 	m_bFiresUnderwater	= true;
+
+	m_fLastReloadActivityDone = 0;
+	m_NextReloadActivity = ACT_VM_RELOAD_RELEASE;
 }
 
 //-----------------------------------------------------------------------------
@@ -239,9 +255,6 @@ void CWeaponPistol::PrimaryAttack( void )
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + PISTOL_FASTEST_REFIRE_TIME;
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 
-
-	
-
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	
 	if( pOwner )
@@ -267,6 +280,7 @@ void CWeaponPistol::PrimaryAttack( void )
 	m_iPrimaryAttacks++;
 	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 }
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -312,14 +326,64 @@ void CWeaponPistol::ItemBusyFrame( void )
 void CWeaponPistol::ItemPostFrame( void )
 {
 	BaseClass::ItemPostFrame();
-
-	if ( m_bInReload )
-		return;
 	
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 
 	if ( pOwner == NULL )
 		return;
+	
+	if ( m_bInReload )
+	{
+		// If initial ejection is done, remain in the "NOCLIP" state until next phase is activated
+		if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && LastReloadActivityDone() )
+		{
+			
+			if ( m_iClip1 <= 0 )
+				SendWeaponAnim(ACT_VM_RELOAD_NOCLIP_EMPTY);
+			else
+				SendWeaponAnim(ACT_VM_RELOAD_NOCLIP);
+
+						
+			if ( m_fLastReloadActivityDone + 1.f < gpGlobals->curtime )
+			{
+				Msg("Sending insert animation \n");
+				
+				if ( m_iClip1 <= 0 )
+					SendWeaponAnim( ACT_VM_RELOAD_INSERT_EMPTY );
+				else
+					SendWeaponAnim( ACT_VM_RELOAD_INSERT );
+
+				SetNextReloadActivity(ACT_VM_RELOAD);  //using
+			}
+		}
+		else if ( m_NextReloadActivity == ACT_VM_RELOAD && LastReloadActivityDone() )  // we're done reloading here...
+		{
+			Msg("Reload complete, moving ammo from inventory to weapon... \n");
+			
+			m_flTimeWeaponIdle		= gpGlobals->curtime;
+			m_flNextPrimaryAttack	= gpGlobals->curtime;
+			m_bInReload = false;
+
+			SendWeaponAnim( ACT_VM_IDLE );
+			// Play the player's reload animation
+			if ( pOwner->IsPlayer() )
+			{
+				( ( CBasePlayer * )pOwner)->SetAnimation( PLAYER_RELOAD );
+			}
+			
+			FinishReload();
+			WeaponIdle();
+		}
+
+		return;
+	}
+
+
+	if ( m_iClip1 <= 0 )
+	{
+		SendWeaponAnim(ACT_VM_RELOAD_NOCLIP_EMPTY);	// this shouldn't be noclip...		
+	}
+
 
 	//Allow a refire as fast as the player can click
 	if ( ( ( pOwner->m_nButtons & IN_ATTACK ) == false ) && ( m_flSoonestPrimaryAttack < gpGlobals->curtime ) )
@@ -330,6 +394,8 @@ void CWeaponPistol::ItemPostFrame( void )
 	{
 		DryFire();
 	}
+
+
 }
 
 //-----------------------------------------------------------------------------
@@ -338,6 +404,9 @@ void CWeaponPistol::ItemPostFrame( void )
 //-----------------------------------------------------------------------------
 Activity CWeaponPistol::GetPrimaryAttackActivity( void )
 {
+	if ( m_iClip1 == 1 )
+		return ACT_VM_PRIMARYATTACK; // TODO: different primary attack for ending empty
+
 	if ( m_nNumShotsFired < 1 )
 		return ACT_VM_PRIMARYATTACK;
 
@@ -354,13 +423,21 @@ Activity CWeaponPistol::GetPrimaryAttackActivity( void )
 //-----------------------------------------------------------------------------
 bool CWeaponPistol::Reload( void )
 {
-	bool fRet = DefaultReload( GetMaxClip1(), GetMaxClip2(), ACT_VM_RELOAD );
-	if ( fRet )
+	if ( !m_bInReload )
 	{
-		WeaponSound( RELOAD );
-		m_flAccuracyPenalty = 0.0f;
+		// Start reload sequence	
+		m_bInReload = true;
+		m_flNextPrimaryAttack = gpGlobals->curtime + 10000; // forever from now, we'll reset after reload is over...
+		
+		if ( m_iClip1 <= 0 )
+			SendWeaponAnim( ACT_VM_RELOAD_RELEASE_EMPTY );
+		else
+			SendWeaponAnim( ACT_VM_RELOAD_RELEASE );
+				
+		SetNextReloadActivity( ACT_VM_RELOAD_NOCLIP  );
 	}
-	return fRet;
+
+	return true;
 }
 
 //-----------------------------------------------------------------------------
