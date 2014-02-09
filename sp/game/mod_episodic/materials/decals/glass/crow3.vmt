@@ -1,0 +1,6 @@
+"DecalModulate"
+{
+	"$basetexture" "Decals/glass/CROW3"
+	"$decalscale" 0.10
+	"$decal" 1
+}
