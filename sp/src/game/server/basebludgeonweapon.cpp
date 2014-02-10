@@ -139,7 +139,7 @@ bool CBaseHLBludgeonWeapon::CheckSwingMotion( )
 	// Get the head of the actual crowbar
 	Vector forward, up, right;
 	pOwner->EyeVectors(&forward, &right, &up);
-	Vector position = pOwner->Weapon_ShootPosition() + (12 * up); 
+	Vector position = pOwner->Weapon_ShootPosition() + (15 * up); 
 	
 
 	Vector currentMotionPosition = position - pOwner->EyePosition();
@@ -510,7 +510,6 @@ void CBaseHLBludgeonWeapon::MotionSwing( const Vector &aimDirection, const Vecto
 			{
 				Msg("Bludgeoned a %s \n", traceHit.m_pEnt->GetClassname());
 				vecToTarget = traceHit.m_pEnt->GetAbsOrigin() - swingStart;
-				VectorNormalize( vecToTarget );
 				nHitActivity = ChooseIntersectionPointAndActivity( traceHit, g_bludgeonMotionMins, g_bludgeonMotionMaxs, pOwner );
 			}
 			else
