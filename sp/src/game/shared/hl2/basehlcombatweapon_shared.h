@@ -61,6 +61,22 @@ protected:
 	bool			m_bLowered;			// Whether the viewmodel is raised or lowered
 	float			m_flRaiseTime;		// If lowered, the time we should raise the viewmodel
 	float			m_flHolsterTime;	// When the weapon was holstered
+
+	
+	bool			ShouldInsertClip( void );
+
+	inline bool LastReloadActivityDone() { return gpGlobals->curtime > m_fLastReloadActivityDone; }
+	inline void SetNextReloadActivity(Activity a) 
+	{ 
+		m_NextReloadActivity = a;
+		m_fLastReloadActivityDone = gpGlobals->curtime + SequenceDuration(); 
+	}
+
+	Activity		m_NextReloadActivity;		// Next reload sequence activity to run
+	float			m_fLastReloadActivityDone;  // For reload sequences, the time the currently running animation will be completed
+	float			m_fPrevHandDistance;		// Last frame distance between hands
+	float			m_fPrevHandDistanceChecked; // Time of last distance check
+
 };
 
 #endif // BASEHLCOMBATWEAPON_SHARED_H

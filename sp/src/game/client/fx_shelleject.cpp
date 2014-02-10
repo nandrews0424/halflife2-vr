@@ -128,9 +128,44 @@ void PistolClipEjectCallback( const CEffectData &data )
 	int iAttachment = vm->LookupAttachment("clip");		
 	vm->GetAttachment(iAttachment, attachOrigin, attachAngles);
 
-	tempents->EjectClip( attachOrigin, attachAngles, pLocalPlayer->GetAbsVelocity(), 1 );
+	tempents->EjectClip( attachOrigin, attachAngles, pLocalPlayer->GetAbsVelocity(), 0 );
 }
 
 DECLARE_CLIENT_EFFECT( "PistolClipEject", PistolClipEjectCallback );
 
+
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Clip eject
+//-----------------------------------------------------------------------------
+void SmgClipEjectCallback( const CEffectData &data )
+{
+	// Use the gun angles to orient the shell^M
+	CBaseEntity* entity = data.GetEntity();
+	if ( !entity )
+		return;
+
+	CBaseEntity* pOwner = entity->GetOwnerEntity();
+	if ( !pOwner )
+		return;
+	
+	C_BasePlayer *pLocalPlayer = C_BasePlayer::GetLocalPlayer();
+	
+	if  ( pOwner != pLocalPlayer )
+		return;
+	
+	C_BaseViewModel* vm = pLocalPlayer->GetViewModel(0);
+	if ( !vm ) 
+		return;
+	
+	Vector attachOrigin;
+	QAngle attachAngles;
+	int iAttachment = vm->LookupAttachment("clip");		
+	vm->GetAttachment(iAttachment, attachOrigin, attachAngles);
+
+	tempents->EjectClip( attachOrigin, attachAngles, pLocalPlayer->GetAbsVelocity(), 1 );
+}
+
+DECLARE_CLIENT_EFFECT( "SmgClipEject", SmgClipEjectCallback );
 

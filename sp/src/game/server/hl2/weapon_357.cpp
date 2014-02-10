@@ -62,17 +62,8 @@ private:
 	bool	GetLocalAcceleration( CBasePlayer* pPlayer, Vector& acceleration );
 	
 	bool m_bCylinderLatched;
-	float m_fLastReloadActivityDone;
-	Activity m_NextReloadActivity;
 	bool m_bFullNewShells;
-	
-	inline bool LastReloadActivityDone() { return gpGlobals->curtime > m_fLastReloadActivityDone; }
-	inline void SetNextReloadActivity(Activity a) 
-	{ 
-		m_NextReloadActivity = a;
-		m_fLastReloadActivityDone = gpGlobals->curtime + SequenceDuration(); 
-	}
-	
+		
 	float  m_fLastUpdate;
 	Vector m_lastOrigin;
 	QAngle m_lastAngle;
@@ -227,9 +218,15 @@ void CWeapon357::ItemPostFrame()
 		}
 		else if ( m_NextReloadActivity == ACT_VM_RELOAD_INSERT_DYNAMIC  && LastReloadActivityDone() )
 		{
-			SendWeaponAnim( ACT_VM_RELOAD_INSERT_DYNAMIC );
-			SetNextReloadActivity(ACT_VM_RELOAD_FULL_DYNAMIC);
-			m_bFullNewShells = true;
+			// TODO: techincally should allow cylinder to be closed / opened here...
+
+			SendWeaponAnim( ACT_VM_RELOAD_EMPTY_DYNAMIC );
+			if ( ShouldInsertClip() ) 
+			{
+				SendWeaponAnim( ACT_VM_RELOAD_INSERT_DYNAMIC );
+				SetNextReloadActivity(ACT_VM_RELOAD_FULL_DYNAMIC);
+				m_bFullNewShells = true;
+			}
 		} 
 		else if (  m_NextReloadActivity == ACT_VM_RELOAD_FULL_DYNAMIC && m_bFullNewShells && LastReloadActivityDone() ) 
 		{

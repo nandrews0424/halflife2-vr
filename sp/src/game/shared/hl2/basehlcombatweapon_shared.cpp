@@ -119,6 +119,12 @@ bool CBaseHLCombatWeapon::Ready( void )
 //-----------------------------------------------------------------------------
 bool CBaseHLCombatWeapon::Deploy( void )
 {
+
+	m_fPrevHandDistance = 0;
+	m_fPrevHandDistanceChecked = 0;
+	m_fLastReloadActivityDone = 0;
+	m_NextReloadActivity = ACT_VM_RELOAD_RELEASE;
+
 	// If we should be lowered, deploy in the lowered position
 	// We have to ask the player if the last time it checked, the weapon was lowered
 	if ( GetOwner() && GetOwner()->IsPlayer() )
@@ -243,6 +249,43 @@ void CBaseHLCombatWeapon::WeaponIdle( void )
 		}
 	}
 }
+
+
+
+
+bool CBaseHLCombatWeapon::ShouldInsertClip( void )
+{
+	// TODO: just print some stuff here.....
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	if ( pOwner == NULL )
+		return true;
+	
+	Vector leftHandOffset = pOwner->EyeToLeftHandOffset();
+
+	// if not tracking left hand 
+	if ( leftHandOffset.Length() == 0 )
+		return m_fLastReloadActivityDone + .66f < gpGlobals->curtime;
+
+	Vector weaponOffset = pOwner->EyeToWeaponOffset();
+	
+	float handDistance = (weaponOffset - leftHandOffset).Length();
+	
+	if ( m_fPrevHandDistance == 0 )
+	{
+		m_fPrevHandDistance = handDistance;
+		m_fPrevHandDistanceChecked = gpGlobals->curtime - 1; // doesn't matter
+	}
+
+	float handClosingSpeed = (m_fPrevHandDistance - handDistance) / (  gpGlobals->curtime - m_fPrevHandDistanceChecked );
+	
+	m_fPrevHandDistance = handDistance;
+	m_fPrevHandDistanceChecked = gpGlobals->curtime;
+		
+	return handDistance <= 15 && handClosingSpeed >= 20;  //arbitrary magic numbers
+}
+
+
+
 
 float	g_lateralBob;
 float	g_verticalBob;

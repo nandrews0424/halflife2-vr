@@ -96,21 +96,7 @@ private:
 	float	m_flLastAttackTime;
 	float	m_flAccuracyPenalty;
 	int		m_nNumShotsFired;
-		
-	float	m_fLastReloadActivityDone;
-	Activity m_NextReloadActivity;
 	bool	m_bClipEjected;
-
-	inline bool LastReloadActivityDone() { return gpGlobals->curtime > m_fLastReloadActivityDone; }
-	inline void SetNextReloadActivity(Activity a) 
-	{ 
-		m_NextReloadActivity = a;
-		m_fLastReloadActivityDone = gpGlobals->curtime + SequenceDuration(); 
-	}
-
-	float	m_fPrevHandDistance;
-	float	m_fPrevHandDistanceChecked;
-	bool	ShouldInsertClip( void );
 };
 
 
@@ -165,12 +151,6 @@ CWeaponPistol::CWeaponPistol( void )
 
 	m_bFiresUnderwater	= true;
 	m_bClipEjected		= false;
-
-	m_fPrevHandDistance = 0;
-	m_fPrevHandDistanceChecked = 0;
-	
-	m_fLastReloadActivityDone = 0;
-	m_NextReloadActivity = ACT_VM_RELOAD_RELEASE;
 }
 
 //-----------------------------------------------------------------------------
@@ -389,36 +369,6 @@ void CWeaponPistol::ItemPostFrame( void )
 	}
 }
 
-bool CWeaponPistol::ShouldInsertClip( void )
-{
-	// TODO: just print some stuff here.....
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-	if ( pOwner == NULL )
-		return true;
-	
-	Vector leftHandOffset = pOwner->EyeToLeftHandOffset();
-
-	// if not tracking left hand 
-	if ( leftHandOffset.Length() == 0 )
-		return m_fLastReloadActivityDone + .66f < gpGlobals->curtime;
-
-	Vector weaponOffset = pOwner->EyeToWeaponOffset();
-	
-	float handDistance = (weaponOffset - leftHandOffset).Length();
-	
-	if ( m_fPrevHandDistance == 0 )
-	{
-		m_fPrevHandDistance = handDistance;
-		m_fPrevHandDistanceChecked = gpGlobals->curtime - 1; // doesn't matter
-	}
-
-	float handClosingSpeed = (m_fPrevHandDistance - handDistance) / (  gpGlobals->curtime - m_fPrevHandDistanceChecked );
-	
-	m_fPrevHandDistance = handDistance;
-	m_fPrevHandDistanceChecked = gpGlobals->curtime;
-		
-	return handDistance <= 15 && handClosingSpeed >= 35;  //arbitrary magic numbers
-}
 
 
 //-----------------------------------------------------------------------------

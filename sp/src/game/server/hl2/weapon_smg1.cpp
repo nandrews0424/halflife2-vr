@@ -18,6 +18,7 @@
 #include "rumble_shared.h"
 #include "gamestats.h"
 #include "particle_parse.h"
+#include "te_effect_dispatch.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -38,6 +39,7 @@ public:
 	void	AddViewKick( void );
 	void	PrimaryAttack( void );
 	void	SecondaryAttack( void );
+	void	ItemPostFrame( void );
 
 	int		GetMinBurst() { return 2; }
 	int		GetMaxBurst() { return 5; }
@@ -66,6 +68,7 @@ public:
 
 protected:
 
+	bool	m_bClipEjected;
 	Vector	m_vecTossVelocity;
 	float	m_flNextGrenadeCheck;
 };
@@ -144,6 +147,7 @@ CWeaponSMG1::CWeaponSMG1( )
 	m_fMaxRange1		= 1400;
 
 	m_bAltFiresUnderwater = false;
+	m_bClipEjected		= false;
 }
 
 //-----------------------------------------------------------------------------
@@ -308,21 +312,17 @@ Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
 //-----------------------------------------------------------------------------
 bool CWeaponSMG1::Reload( void )
 {
-	bool fRet;
-	float fCacheTime = m_flNextSecondaryAttack;
-
-	fRet = DefaultReload( GetMaxClip1(), GetMaxClip2(), ACT_VM_RELOAD );
-	if ( fRet )
+	if ( !m_bInReload )
 	{
-		// Undo whatever the reload process has done to our secondary
-		// attack timer. We allow you to interrupt reloading to fire
-		// a grenade.
-		m_flNextSecondaryAttack = GetOwner()->m_flNextAttack = fCacheTime;
-
-		WeaponSound( RELOAD );
+		// Start reload sequence	
+		m_bInReload = true;
+		m_flNextPrimaryAttack = gpGlobals->curtime + 10000; // forever from now, we'll reset after reload is over...
+		
+		SendWeaponAnim( ACT_VM_RELOAD_RELEASE );
+		SetNextReloadActivity( ACT_VM_RELOAD_NOCLIP  );
 	}
-
-	return fRet;
+	
+	return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -519,6 +519,68 @@ int CWeaponSMG1::WeaponRangeAttack2Condition( float flDot, float flDist )
 	}
 }
 
+
+void CWeaponSMG1::ItemPostFrame( void )
+{
+	BaseClass::ItemPostFrame();
+	
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+
+	if ( pOwner == NULL )
+		return;
+	
+
+	if ( m_bInReload )
+	{
+		// If initial ejection is done, remain in the "NOCLIP" state until next phase is activated
+		if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && LastReloadActivityDone() )
+		{
+			SendWeaponAnim(ACT_VM_RELOAD_NOCLIP);
+									
+			if ( ShouldInsertClip() )
+			{
+				SendWeaponAnim( ACT_VM_RELOAD_INSERT );
+				SetNextReloadActivity(ACT_VM_RELOAD); 
+			}
+		}
+		else if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && !m_bClipEjected && gpGlobals->curtime >= m_fLastReloadActivityDone - .15 ) // should be equivalent behavior....
+		{
+			// Release the clip timed within last 10th of a sec of release animation
+			CEffectData data;
+			data.m_nEntIndex = entindex();
+			DispatchEffect( "SmgClipEject", data );
+			m_bClipEjected = true;
+		}
+		else if ( m_NextReloadActivity == ACT_VM_RELOAD && LastReloadActivityDone() )  // we're done reloading here...
+		{
+			m_flTimeWeaponIdle		= gpGlobals->curtime;
+			m_flNextPrimaryAttack	= gpGlobals->curtime;
+			m_bInReload = false;
+			m_bClipEjected = false;
+
+			SendWeaponAnim( ACT_VM_IDLE );
+			// Play the player's reload animation
+			if ( pOwner->IsPlayer() )
+			{
+				( ( CBasePlayer * )pOwner)->SetAnimation( PLAYER_RELOAD );
+			}
+			
+			FinishReload();
+			WeaponIdle();
+		}
+
+		return;
+	}
+
+	if ( m_iClip1 <= 0 && GetActivity() != ACT_VM_LASTFIRE )
+	{
+		SendWeaponAnim(ACT_VM_IDLE_EMPTY);
+	}
+	
+
+
+}
+
 //-----------------------------------------------------------------------------
 const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 {
@@ -535,3 +597,5 @@ const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 
 	return proficiencyTable;
 }
+
+
