@@ -281,7 +281,7 @@ bool CBaseHLCombatWeapon::ShouldInsertClip( void )
 	m_fPrevHandDistance = handDistance;
 	m_fPrevHandDistanceChecked = gpGlobals->curtime;
 		
-	return handDistance <= 15 && handClosingSpeed >= 20;  //arbitrary magic numbers
+	return handDistance <= 15 && handClosingSpeed >= 35;  //arbitrary magic numbers
 }
 
 

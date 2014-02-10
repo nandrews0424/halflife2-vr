@@ -543,7 +543,7 @@ void CWeaponSMG1::ItemPostFrame( void )
 				SetNextReloadActivity(ACT_VM_RELOAD); 
 			}
 		}
-		else if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && !m_bClipEjected && gpGlobals->curtime >= m_fLastReloadActivityDone - .15 ) // should be equivalent behavior....
+		else if ( m_NextReloadActivity == ACT_VM_RELOAD_NOCLIP && !m_bClipEjected && gpGlobals->curtime >= m_fLastReloadActivityDone - .2 ) // should be equivalent behavior....
 		{
 			// Release the clip timed within last 10th of a sec of release animation
 			CEffectData data;
