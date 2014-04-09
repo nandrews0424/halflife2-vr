@@ -160,7 +160,19 @@ forcetextureshadow props_interiors/HandrailCluster01a.mdl
 forcetextureshadow props_interiors/HandrailCluster01b.mdl
 forcetextureshadow props_interiors/ElevatorShaft_Door01a.mdl
 forcetextureshadow props_foliage/ivy_01.mdl
+forcetextureshadow props_canal/canal_bridge03b.mdl
+forcetextureshadow props_canal/refinery_01_skybox.mdl
+forcetextureshadow props_canal/refinery_02_skybox.mdl
+forcetextureshadow props_canal/refinery_03.mdl
+forcetextureshadow props_canal/refinery_03_skybox.mdl
+forcetextureshadow props_canal/refinery_04.mdl
+forcetextureshadow props_canal/refinery_05.mdl
+forcetextureshadow props_canal/refinery_05_skybox.mdl
+forcetextureshadow props_lab/crystalbulk.mdl
+forcetextureshadow props_lab/servers.mdl
 
 lights/light_hlvr_flouro	190 201 220 2
 lights/skylight_day01_01	190 201 220 2
 lights/skylight_day01_01b	190 201 220 1
+lights/skylight_day02_01	172 196 204 2
+lights/skylight_day02_01b	172 196 204 1
