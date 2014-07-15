@@ -1,4 +1,4 @@
-lights/fluorescentcool001a	189 231 232 350
+ lights/fluorescentcool001a	189 231 232 350
 lights/fluorescentcool001b	236 255 182 350
 lights/fluorescentcool002a	189 231 232 400
 lights/fluorescentcool002b	236 255 182 400
@@ -50,7 +50,7 @@ glass/glasswindow035a		145 222 172 100
 dev/DEV_INTERIORLIGHT02B	151 176 204 225
 
 plaster/plasterwall029h		189 223 227 125
-building_template/Building_Trainstation_Template001d	230 230 200 65
+building_template/Building_ station_Template001d	230 230 200 65
 building_template/Building_Trainstation_Template001e	230 230 200 150
 building_template/Building_Trainstation_window002d	230 230 200 300
 building_template/Building_Trainstation_window002e	230 230 200 300
@@ -160,7 +160,10 @@ forcetextureshadow props_interiors/HandrailCluster01a.mdl
 forcetextureshadow props_interiors/HandrailCluster01b.mdl
 forcetextureshadow props_interiors/ElevatorShaft_Door01a.mdl
 forcetextureshadow props_foliage/ivy_01.mdl
+forcetextureshadow props_canal/canal_bridge02.mdl
+forcetextureshadow props_canal/canal_bridge03a.mdl
 forcetextureshadow props_canal/canal_bridge03b.mdl
+forcetextureshadow props_canal/canal_bridge03c.mdl
 forcetextureshadow props_canal/refinery_01_skybox.mdl
 forcetextureshadow props_canal/refinery_02_skybox.mdl
 forcetextureshadow props_canal/refinery_03.mdl
@@ -170,6 +173,27 @@ forcetextureshadow props_canal/refinery_05.mdl
 forcetextureshadow props_canal/refinery_05_skybox.mdl
 forcetextureshadow props_lab/crystalbulk.mdl
 forcetextureshadow props_lab/servers.mdl
+forcetextureshadow props_wasteland/bridge_low_res.mdl
+forcetextureshadow props_wasteland/bridge_railing.mdl
+forcetextureshadow props_rooftop/antenna01a.mdl
+forcetextureshadow props_wasteland/bridge_side01-other.mdl
+forcetextureshadow props_wasteland/bridge_side02-other.mdl
+forcetextureshadow props_wasteland/bridge_side03-other.mdl
+forcetextureshadow props_wasteland/bridge_middle.mdl
+forcetextureshadow props_wasteland/bridge_internals01.mdl
+forcetextureshadow props_wasteland/bridge_internals02.mdl
+forcetextureshadow props_wasteland/bridge_internals03.mdl
+forcetextureshadow props_wasteland/bridge_side01.mdl
+forcetextureshadow props_wasteland/bridge_side02.mdl
+forcetextureshadow props_wasteland/bridge_side03.mdl
+forcetextureshadow props_combine/combine_fence01a.mdl
+forcetextureshadow props_combine/combine_fence01b.mdl
+forcetextureshadow props_wasteland/lighthouse_stairs.mdl
+forcetextureshadow props_rooftop/RooftopCluser06a.mdl
+forcetextureshadow props_rooftop/RooftopCluser07a.mdl
+forcetextureshadow props_rooftop/RooftopCluser09a.mdl
+forcetextureshadow props_trainstation/train001.mdl
+forcetextureshadow Cranes/crane_body_LOD.mdl
 
 lights/light_hlvr_flouro	190 201 220 2
 lights/skylight_day01_01	190 201 220 2

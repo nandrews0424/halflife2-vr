@@ -10,7 +10,8 @@
 	
 	type			singleplayer_only
 	icon            "resource/hl2vr"
-	nomodels		0	
+	nomodels		0
+	supportsvr		1	
 
 	FileSystem
 	{
