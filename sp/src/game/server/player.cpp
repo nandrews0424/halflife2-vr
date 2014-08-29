@@ -7421,6 +7421,13 @@ void CBasePlayer::RemoveWearable( CEconWearable *pItem )
 			m_hMyWearables.Remove( i );
 			break;
 		}
+
+		// Integrety is failing, remove NULLs
+		if ( !pWearable )
+		{
+			m_hMyWearables.Remove( i );
+			break;
+		}
 	}
 
 #ifdef DEBUG

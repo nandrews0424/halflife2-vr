@@ -1,6 +1,5 @@
 "GameInfo"
 {
-	
 	game 			"Half-Life VR: Episode One"
 	title 			" HALF-LIFE R"
 	title2			"=== episode one==="
@@ -12,6 +11,7 @@
 	type			singleplayer_only
 	icon           	"resource/hl2vr"
 	nomodels		0	
+	supportsvr	1
 
 	FileSystem
 	{
