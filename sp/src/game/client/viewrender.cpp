@@ -3183,6 +3183,8 @@ void CViewRender::DrawMonitors( const CViewSetup &cameraView )
 
 
 
+
+static ConVar scope_fov("scope_fov", "3", FCVAR_ARCHIVE, "Fov of the crossbow scope, smaller = more zoom");
 void CViewRender::DrawScope( const CViewSetup &viewSet )
 {
 	C_BasePlayer *localPlayer = C_BasePlayer::GetLocalPlayer();
@@ -3217,7 +3219,7 @@ void CViewRender::DrawScope( const CViewSetup &viewSet )
 	scopeView.height = pRenderTarget->GetActualHeight();
 	scopeView.x = 0;
 	scopeView.y = 0;
-	scopeView.fov = 7.f;  // change to override scope zoom
+	scopeView.fov = scope_fov.GetFloat();  // change to override scope zoom
 	scopeView.m_bOrtho = false;
 	scopeView.m_bViewToProjectionOverride = false; // this was the magic that prevents it from getting all warped and FOV-overriden
 

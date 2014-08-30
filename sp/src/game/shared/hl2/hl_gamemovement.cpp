@@ -881,43 +881,43 @@ bool CHL2GameMovement::CheckLadderAutoMount( CFuncLadder *ladder, const Vector& 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-bool CHL2GameMovement::LadderMove( void )
+bool CHL2GameMovement::LadderMove(void)
 {
-
-	if ( player->GetMoveType() == MOVETYPE_NOCLIP )
+	if (player->GetMoveType() == MOVETYPE_NOCLIP)
 	{
-		SetLadder( NULL );
+		SetLadder(NULL);
 		return false;
 	}
 
 	// If being forced to mount/dismount continue to act like we are on the ladder
-	if ( IsForceMoveActive() && ContinueForcedMove() )
+	if (IsForceMoveActive() && ContinueForcedMove())
 	{
 		return true;
 	}
 
 	CFuncLadder *bestLadder = NULL;
-	Vector bestOrigin( 0, 0, 0 );
+	Vector bestOrigin(0, 0, 0);
 
 	CFuncLadder *ladder = GetLadder();
 
 	// Something 1) deactivated the ladder...  or 2) something external applied
 	//  a force to us.  In either case  make the player fall, etc.
-	if ( ladder && 
-		 ( !ladder->IsEnabled() ||
-		 ( player->GetBaseVelocity().LengthSqr() > 1.0f ) ) )
+	if (ladder &&
+		(!ladder->IsEnabled() ||
+		(player->GetBaseVelocity().LengthSqr() > 1.0f)))
 	{
 		GetHL2Player()->ExitLadder();
 		ladder = NULL;
+		Msg("Ladder was deactivated ( or we were forced off ) !!!! \n");
 	}
 
-	if ( !ladder )
+	if (!ladder)
 	{
-		Findladder( 64.0f, &bestLadder, bestOrigin, NULL );
+		Findladder(64.0f, &bestLadder, bestOrigin, NULL);
 	}
 
 #if !defined (CLIENT_DLL)
-	if( !ladder && bestLadder && sv_ladder_useonly.GetBool() )
+	if (!ladder && bestLadder && sv_ladder_useonly.GetBool())
 	{
 		GetHL2Player()->DisplayLadderHudHint();
 	}
@@ -928,26 +928,27 @@ bool CHL2GameMovement::LadderMove( void )
 	bool pressed_use = ( buttonsPressed & IN_USE ) ? true : false;
 
 	// If I'm already moving on a ladder, use the previous ladder direction
-	if ( !ladder && !pressed_use )
+	if (!ladder && !pressed_use)
 	{
 		// If flying through air, allow mounting ladders if we are facing < 15 degress from the ladder and we are close
-		if ( !ladder && !sv_ladder_useonly.GetBool() )
+		if (!ladder && !sv_ladder_useonly.GetBool())
 		{
 			// Tracker 6625:  Don't need to be leaping to auto mount using this method...
 			// But if we are on the ground, then we must not be backing into the ladder (Tracker 12961)
 			bool onground = player->GetGroundEntity() ? true : false;
-			if ( !onground || ( mv->m_flForwardMove > 0.0f ) )
+			if (!onground || (mv->m_flForwardMove > 0.0f))
 			{
-				if ( CheckLadderAutoMountCone( bestLadder, bestOrigin, 15.0f, 32.0f ) )
+				if (CheckLadderAutoMountCone(bestLadder, bestOrigin, 15.0f, 32.0f))
 				{
 					return true;
 				}
 			}
-			
+
+
 			// Pressing forward while looking at ladder and standing (or floating) near a mounting point
-			if ( mv->m_flForwardMove > 0.0f )
+			if (mv->m_flForwardMove > 0.0f)
 			{
-				if ( CheckLadderAutoMountEndPoint( bestLadder, bestOrigin ) )
+				if (CheckLadderAutoMountEndPoint(bestLadder, bestOrigin))
 				{
 					return true;
 				}
@@ -957,83 +958,95 @@ bool CHL2GameMovement::LadderMove( void )
 		return false;
 	}
 
-	if ( !ladder && 
-		LookingAtLadder( bestLadder ) &&
-		CheckLadderAutoMount( bestLadder, bestOrigin ) )
+	if (!ladder &&
+		LookingAtLadder(bestLadder) &&
+		CheckLadderAutoMount(bestLadder, bestOrigin))
 	{
 		return true;
 	}
 
 	// Reassign the ladder
 	ladder = GetLadder();
-	if ( !ladder )
+	if (!ladder)
 	{
 		return false;
 	}
 
 	// Don't play the deny sound
-	if ( pressed_use )
+	if (pressed_use)
 	{
 		GetHL2Player()->m_bPlayUseDenySound = false;
 	}
 
 	// Make sure we are on the ladder
-	player->SetMoveType( MOVETYPE_LADDER );
-	player->SetMoveCollide( MOVECOLLIDE_DEFAULT );
+	player->SetMoveType(MOVETYPE_LADDER);
+	player->SetMoveCollide(MOVECOLLIDE_DEFAULT);
 
-	player->SetGravity( 0.0f );
-	
+	player->SetGravity(0.0f);
+
 	float forwardSpeed = 0.0f;
 	float rightSpeed = 0.0f;
 
 	float speed = player->MaxSpeed();
 
 
-	if ( mv->m_nButtons & IN_BACK )
+	if (mv->m_nButtons & IN_BACK)
 	{
 		forwardSpeed -= speed;
 	}
-	
-	if ( mv->m_nButtons & IN_FORWARD )
+
+	if (mv->m_nButtons & IN_FORWARD)
 	{
 		forwardSpeed += speed;
 	}
-	
-	if ( mv->m_nButtons & IN_MOVELEFT )
+
+	if (mv->m_nButtons & IN_MOVELEFT)
 	{
 		rightSpeed -= speed;
 	}
-	
-	if ( mv->m_nButtons & IN_MOVERIGHT )
+
+	if (mv->m_nButtons & IN_MOVERIGHT)
 	{
 		rightSpeed += speed;
 	}
-	
-	if ( mv->m_nButtons & IN_JUMP )
+
+	if (mv->m_nButtons & IN_JUMP)
 	{
-		player->SetMoveType( MOVETYPE_WALK );
+		player->SetMoveType(MOVETYPE_WALK);
 		// Remove from ladder
-		SetLadder( NULL );
+		SetLadder(NULL);
 
 		// Jump in view direction
 		Vector jumpDir = m_vecForward;
 
 		// unless pressing backward or something like that
-		if ( mv->m_flForwardMove < 0.0f )
+		if (mv->m_flForwardMove < 0.0f)
 		{
 			jumpDir = -jumpDir;
 		}
 
-		VectorNormalize( jumpDir );
+		VectorNormalize(jumpDir);
 
-		VectorScale( jumpDir, MAX_CLIMB_SPEED, mv->m_vecVelocity );
+		VectorScale(jumpDir, MAX_CLIMB_SPEED, mv->m_vecVelocity);
 		// Tracker 13558:  Don't add any extra z velocity if facing downward at all
-		if ( m_vecForward.z >= 0.0f )
+		if (m_vecForward.z >= 0.0f)
 		{
 			mv->m_vecVelocity.z = mv->m_vecVelocity.z + 50;
 		}
 		return false;
 	}
+
+
+	// NA: override w/ joystick inputs, no idea how this was never taken into account :/
+	if (forwardSpeed == 0 && rightSpeed == 0 
+		&&  (mv->m_flForwardMove > 0 || mv->m_flSideMove > 0)) 
+	{
+		forwardSpeed = mv->m_flForwardMove;
+		rightSpeed = mv->m_flSideMove;
+	}
+	
+
+
 
 	if ( forwardSpeed != 0 || rightSpeed != 0 )
 	{
@@ -1072,13 +1085,18 @@ bool CHL2GameMovement::LadderMove( void )
 		float changeover = ishorizontal ? 0.0f : 0.3f;
 
 		float factor = 1.0f;
+
+		// NA: make this analog to the speed
+		factor = fabs(forwardSpeed / speed);
+
+
 		if ( velocity.z >= 0 )
 		{
 			float dotTop = ladderUp.Dot( velocity );
 			if ( dotTop < -changeover )
 			{
 				// Aimed at bottom
-				factor = -1.0f;
+				factor *= -1.0f;
 			}
 		}
 		else
@@ -1086,7 +1104,7 @@ bool CHL2GameMovement::LadderMove( void )
 			float dotBottom = -ladderUp.Dot( velocity );
 			if ( dotBottom > changeover )
 			{
-				factor = -1.0f;
+				factor *= -1.0f;
 			}
 		}
 
@@ -1111,10 +1129,6 @@ bool CHL2GameMovement::LadderMove( void )
 	{
 		mv->m_vecVelocity.Init();
 	}
-
-	// NA TODO: is ladder climb vec not registering or is it an issue with clipping....
-	Msg("HLGamveMovment Ladder Climb Vec: %2f %2f %2f \n", mv->m_vecVelocity.x, mv->m_vecVelocity.y, mv->m_vecVelocity.z);
-
 
 	return true;
 }

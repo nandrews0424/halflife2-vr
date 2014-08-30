@@ -2859,6 +2859,8 @@ bool CGameMovement::LadderMove( void )
 	Vector wishdir;
 	Vector end;
 
+	Msg("CGameMovement::LadderMove running... \n");
+
 	if ( player->GetMoveType() == MOVETYPE_NOCLIP )
 		return false;
 
@@ -2869,9 +2871,11 @@ bool CGameMovement::LadderMove( void )
 	if ( player->GetMoveType() == MOVETYPE_LADDER )
 	{
 		wishdir = -player->m_vecLadderNormal;
+		Msg("Already on ladder - wishdir: %2f %2f %2f \n", wishdir.x, wishdir.y, wishdir.z);
 	}
 	else
 	{
+		
 		// otherwise, use the direction player is attempting to move
 		if ( mv->m_flForwardMove || mv->m_flSideMove )
 		{
@@ -2879,9 +2883,11 @@ bool CGameMovement::LadderMove( void )
 				wishdir[i] = m_vecForward[i]*mv->m_flForwardMove + m_vecRight[i]*mv->m_flSideMove;
 
 			VectorNormalize(wishdir);
+			Msg("Not already on ladder but moving \n", wishdir.x, wishdir.y, wishdir.z);
 		}
 		else
 		{
+			Msg("Player not moving, no ladder check necessary \n");
 			// Player is not attempting to move, no ladder behavior
 			return false;
 		}
@@ -4620,11 +4626,11 @@ void CGameMovement::PlayerMove( void )
 		//  get off of the ladder
 		
 		// TODO: this causes lots of weirdness.
-		//bool bCheckLadder = CheckInterval( LADDER );
-		//if ( bCheckLadder || player->GetMoveType() == MOVETYPE_LADDER )
+		// bool bCheckLadder = CheckInterval( LADDER );
+		// if ( bCheckLadder || player->GetMoveType() == MOVETYPE_LADDER )
 		{
-			if ( !LadderMove() && 
-				( player->GetMoveType() == MOVETYPE_LADDER ) )
+			bool onLadder = LadderMove();
+			if ( !LadderMove() && ( player->GetMoveType() == MOVETYPE_LADDER ) )
 			{
 				// Clear ladder stuff unless player is dead or riding a train
 				// It will be reset immediately again next frame if necessary

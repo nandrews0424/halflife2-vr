@@ -128,7 +128,7 @@ void PistolClipEjectCallback( const CEffectData &data )
 	int iAttachment = vm->LookupAttachment("clip");		
 	vm->GetAttachment(iAttachment, attachOrigin, attachAngles);
 
-	tempents->EjectClip( attachOrigin, attachAngles, pLocalPlayer->GetAbsVelocity(), 0 );
+	tempents->EjectClip( attachOrigin, attachAngles, pLocalPlayer->GetAbsVelocity(), 1 );
 }
 
 DECLARE_CLIENT_EFFECT( "PistolClipEject", PistolClipEjectCallback );

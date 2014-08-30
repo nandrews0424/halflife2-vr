@@ -50,7 +50,7 @@ static ConVar mt_control_mode( "mt_control_mode", "2", FCVAR_ARCHIVE, "Sets the 
 static ConVar mt_swap_hydras( "mt_swap_hydras", "0", 0, "Flip the right & left hydras");
 static ConVar mt_menu_control_mode( "mt_menu_control_mode", "0", FCVAR_ARCHIVE, "Control the mouse in menu with 0 = Right joystick, 1 = Right hand position, 2 = Both");
 static ConVar mt_tactical_haptics( "mt_tactical_haptics", "0", FCVAR_ARCHIVE, "Special mode for the hydra orientation needed for the tactical haptics guys' setup");
-static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "5", FCVAR_ARCHIVE, "Downward offset for calibration position (higher pushes weapon further down)");
+static ConVar mt_calibration_offset_down( "mt_calibration_offset_down", "15", FCVAR_ARCHIVE, "Downward offset for calibration position (higher pushes weapon further down)");
 static ConVar mt_calibration_offset_forward( "mt_calibration_offset_forward", "0", FCVAR_ARCHIVE, "Forward offset for calibration position (higher moves weapon further forward per the same hand position)");
 
 MotionTracker* _motionTracker;
@@ -390,7 +390,6 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 {
 	if ( !_initialized )
 		return;
-
 	
 	QAngle engineTorsoAngles; 
 	MatrixToAngles(torsoMatrix, engineTorsoAngles);
