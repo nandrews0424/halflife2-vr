@@ -481,7 +481,7 @@ void CHL2_Player::HandleSpeedChanges( void )
 
 	bool bCanSprint = CanSprint();
 	bool bIsSprinting = IsSprinting();
-	bool bWantSprint = ( bCanSprint && IsSuitEquipped() && (m_nButtons & IN_SPEED) );
+	bool bWantSprint = ( bCanSprint && (m_nButtons & IN_SPEED) );
 	if ( bIsSprinting != bWantSprint && (buttonsChanged & IN_SPEED) )
 	{
 		// If someone wants to sprint, make sure they've pressed the button to do so. We want to prevent the
@@ -508,29 +508,33 @@ void CHL2_Player::HandleSpeedChanges( void )
 			m_nButtons &= ~IN_SPEED;
 		}
 	}
+	else {
 
-	bool bIsWalking = IsWalking();
-	// have suit, pressing button, not sprinting or ducking
-	bool bWantWalking;
-	
-	if( IsSuitEquipped() )
-	{
-		bWantWalking = (m_nButtons & IN_WALK) && !IsSprinting() && !(m_nButtons & IN_DUCK);
-	}
-	else
-	{
-		bWantWalking = true;
-	}
-	
-	if( bIsWalking != bWantWalking )
-	{
-		if ( bWantWalking )
+		bool bIsWalking = IsWalking();
+		// have suit, pressing button, not sprinting or ducking
+		bool bWantWalking;
+
+		return; // no need for walking given the default vr settings
+
+		if (IsSuitEquipped())
 		{
-			StartWalking();
+			bWantWalking = (m_nButtons & IN_WALK) && !IsSprinting() && !(m_nButtons & IN_DUCK);
 		}
 		else
 		{
-			StopWalking();
+			bWantWalking = true;
+		}
+
+		if (bIsWalking != bWantWalking)
+		{
+			if (bWantWalking)
+			{
+				StartWalking();
+			}
+			else
+			{
+				StopWalking();
+			}
 		}
 	}
 }
@@ -1163,11 +1167,9 @@ void CHL2_Player::InitSprinting( void )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::CanSprint()
 {
-	return ( m_bSprintEnabled &&										// Only if sprint is enabled 
-			!IsWalking() &&												// Not if we're walking
-			!( m_Local.m_bDucked && !m_Local.m_bDucking ) &&			// Nor if we're ducking
-			(GetWaterLevel() != 3) &&									// Certainly not underwater
-			(GlobalEntity_GetState("suit_no_sprint") != GLOBAL_ON) );	// Out of the question without the sprint module
+	return (m_bSprintEnabled &&										// Only if sprint is enabled 
+			!(m_Local.m_bDucked && !m_Local.m_bDucking) &&			// Nor if we're ducking
+			(GetWaterLevel() != 3)); 							// Certainly not underwater
 }
 
 //-----------------------------------------------------------------------------
@@ -1205,12 +1207,17 @@ void CHL2_Player::StartSprinting( void )
 		return;
 	}
 
-	if( !SuitPower_AddDevice( SuitDeviceSprint ) )
-		return;
+	// even without suit we'll go ahead and let them sprint, sans the suit noise of course
+	if (IsSuitEquipped())
+	{
+		if (!SuitPower_AddDevice(SuitDeviceSprint))
+			return;
 
-	CPASAttenuationFilter filter( this );
-	filter.UsePredictionRules();
-	EmitSound( filter, entindex(), "HL2Player.SprintStart" );
+
+		CPASAttenuationFilter filter(this);
+		filter.UsePredictionRules();
+		EmitSound(filter, entindex(), "HL2Player.SprintStart");
+	}
 
 	SetMaxSpeed( HL2_SPRINT_SPEED );
 	m_fIsSprinting = true;
@@ -1234,6 +1241,7 @@ void CHL2_Player::StopSprinting( void )
 	{
 		SetMaxSpeed( HL2_WALK_SPEED );
 	}
+	
 
 	m_fIsSprinting = false;
 
