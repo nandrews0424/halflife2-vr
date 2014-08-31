@@ -19,6 +19,9 @@ WeaponData
 	"autoswitchto"		"0"
 	"autoswitchfrom"	"0"
 	"item_flags"		"2"
+
+	// 2 aim mode is special 2 handed mode for gravgun
+	"aim_mode"			"2" 
 	
 	weaponHudOffset
 	{

@@ -79,6 +79,7 @@ public:
 	Vector                                  weaponHudOffset;
 	Color                                   laserCrosshairColor;
 	float                                   laserCrosshairScale;
+	int										aimMode;
 	bool					bParsedScript;
 	bool					bLoadedHudElements;
 

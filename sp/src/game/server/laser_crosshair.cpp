@@ -52,7 +52,7 @@ UTIL_SetSize( pLaserDot, vec3_origin, vec3_origin );
 
 	pLaserDot->SetOwnerEntity( pOwner );
 
-	pLaserDot->SetContextThink( &CLaserCrosshair::LaserThink, gpGlobals->curtime + 0.1f, "LaserCrosshairThinkContext" );
+	pLaserDot->SetContextThink( &CLaserCrosshair::LaserThink, gpGlobals->curtime + 0.02f, "LaserCrosshairThinkContext" );
 	pLaserDot->SetSimulatedEveryTick( true );
 
 	if ( !bVisibleDot )
@@ -104,6 +104,11 @@ void CLaserCrosshair::TurnOn( void )
 void CLaserCrosshair::TurnOff( void )
 {
 	m_bIsOn = false;
+	
+	// Put the laser pointer way off in the middle of nowhere when it's turned off 
+	// otherwise it can interfere with the RPG oddly enough
+	SetLaserPosition(Vector(150000, 150000, -150000), Vector(1, 0, 0));
+	
 	if ( m_bVisibleLaserDot )
 	{
 		BaseClass::TurnOff();

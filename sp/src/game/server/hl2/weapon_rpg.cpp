@@ -555,6 +555,7 @@ void CMissile::SeekThink( void )
 		}
 	}
 
+	
 	//Search for all dots relevant to us
 	for( CLaserDot *pEnt = GetLaserDotList(); pEnt != NULL; pEnt = pEnt->m_pNext )
 	{

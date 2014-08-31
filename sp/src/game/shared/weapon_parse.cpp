@@ -489,6 +489,9 @@ void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponNam
 		laserCrosshairColor.SetColor(255,0, 0, 0);
 		laserCrosshairScale = .0625;
 	}
+
+	aimMode = pKeyValuesData->GetInt("aim_mode", 0);
+
 }
 
 

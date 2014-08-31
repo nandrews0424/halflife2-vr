@@ -17,6 +17,10 @@ WeaponData
 	"weight"				"4"
 	"item_flags"			"0"
 
+	// 2 handed aim mode
+	"aim_mode"				"1" 
+	
+
 	weaponHudOffset
 	{
 		"forward"		"-2.5"
