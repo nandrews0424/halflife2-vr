@@ -121,9 +121,6 @@ MotionTracker::MotionTracker()
 	sixenseInitialize();
 
 	_rhandCalibration.Identity(); // _rhandCalibration is the calibration between sixense and the torso coordinate space
-	
-	PositionMatrix(Vector(-1, 0, -11.5), _eyesToTorsoTracker);
-	
 	_controlMode = (MotionControlMode_t) mt_control_mode.GetInt();
 
 	usermessages->HookMessage("Battery", __MsgFunc_CLocalPlayer_Battery ); // while this has nothing really to do with this code, it's VR only
@@ -185,8 +182,6 @@ matrix3x4_t MotionTracker::getTrackedTorso()
 
 
 
-
-
 void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 {
 	if ( !_initialized )
@@ -199,13 +194,8 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	// get raw torso and weap positions, construct the distance from the diff of those two + the distance to the eyes from a properly calibrated torso tracker...
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
-	MatrixPosition(_eyesToTorsoTracker, vEyes);  // vEyes is the eye to 'torso tracker' offset, which in the case of two handed tracking is the offset from the
-
-	VectorRotate(vEyes, _sixenseToWorld, vEyes);
-	VectorRotate(vEyes, _rhandCalibration.As3x4(), vEyes); // vEyes should now be in the torso relative game coords
 	
-	
-	Vector vEyesToWeapon = (vWeapon - _vecBaseToTorso)  + vEyes;			// was ( weapon - torso ) but since at this point the torso positional changes haven't been applied (get overridden in the view), that's unnecessary...
+	Vector vEyesToWeapon = vWeapon - _vecBaseToTorso;			// was ( weapon - torso ) but since at this point the torso positional changes haven't been applied (get overridden in the view), that's unnecessary...
 	
 	PositionMatrix(vEyesToWeapon, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
 	
@@ -289,12 +279,10 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 
 	matrix3x4_t weaponMatrix = getTrackedRightHand();
 	
-	Vector vWeapon, vEyes;
+	Vector vWeapon;
 	MatrixPosition(weaponMatrix, vWeapon);
-	MatrixPosition(_eyesToTorsoTracker, vEyes);
-	// TODO same issue here as before, eyeToTorso must be adjusted to torso coordinates in game for eye offset to work properly
 	
-	offset = (vWeapon - _vecBaseToTorso)  + vEyes;				
+	offset = vWeapon - _vecBaseToTorso;					// we're really getting the weapon offset from the eyes in tracker space
 
 	PositionMatrix(offset, weaponMatrix);							// position is reset rather than distance to base to distance to torso tracker
 	MatrixMultiply(_sixenseToWorld, weaponMatrix, weaponMatrix);	// convert from sixense to torso coordinates
@@ -311,14 +299,12 @@ void MotionTracker::getEyeToLeftHandOffset(Vector& offset)
 		return;
 	}
 
-	matrix3x4_t leftHandMatrix = getTrackedTorso(); // todo: shoud b
+	matrix3x4_t leftHandMatrix = getTrackedLeftHand(); // todo: shoud b
 		
-	Vector vWeapon, vEyes;
+	Vector vWeapon;
 	MatrixPosition(leftHandMatrix, vWeapon);
-	MatrixPosition(_eyesToTorsoTracker, vEyes);
-	// TODO same issue here as before, eyeToTorso must be adjusted to torso coordinates in game for eye offset to work properly
 	
-	offset = (vWeapon - _vecBaseToTorso)  + vEyes;				
+	offset = vWeapon - _vecBaseToTorso;				
 
 	PositionMatrix(offset, leftHandMatrix);					// position is reset rather than distance to base to distance to torso tracker
 	MatrixMultiply(_sixenseToWorld, leftHandMatrix, leftHandMatrix);	// convert from sixense to torso coordinates
@@ -331,13 +317,14 @@ void MotionTracker::getEyeToLeftHandOffset(Vector& offset)
 
 void MotionTracker::getViewOffset(Vector& offset)
 {
+	// This only makes sense if we're using the left hand as the body tracker
+
 	if ( !_initialized || _controlMode == TRACK_BOTH_HANDS  )
 	{
 		offset.Init();
 		return;
 	}
 
-	// todo: need to clean this up
 	matrix3x4_t torsoMatrix = getTrackedTorso();
 	MatrixPosition(torsoMatrix, offset);
 	offset -= _vecBaseToTorso;
@@ -476,10 +463,8 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 		// Now we reset vecBaseToTorso to be the midpoint between the two
 		_vecBaseToTorso = rightHand + rightHandToLeft/2.f + forward*-mt_calibration_offset_forward.GetFloat();
 
-		// And we should also adjust the expected offset from head to "torso" b/c it's a bit harder to set perfectly otherwise..
-		
-		PositionMatrix(Vector(0, 0, -mt_calibration_offset_down.GetFloat()), _eyesToTorsoTracker);
-
+		// Adjust for the offset from the tracked position to the hands
+		_vecBaseToTorso += Vector(0, 0, mt_calibration_offset_down.GetFloat());
 	}
 
 	_lastCalibrated = gpGlobals->curtime;

@@ -51,21 +51,23 @@ protected:
 	float	_lastCalibrated;
 	
 	matrix3x4_t _sixenseToWorld;
-	matrix3x4_t _eyesToTorsoTracker;
 	matrix3x4_t	_torsoCalibration;
 	VMatrix		_rhandCalibration;
 	
 	Vector	_vecBaseToTorso;
 
-	float	_baseEngineYaw;
-	float	_prevYawTorso;
-	float	_accumulatedYawTorso;
+	float	_baseEngineYaw;			// Base yaw value of 'player' in world space ( accounts for mouse / joy inputs turning the player )
+	float	_accumulatedYawTorso;   // Accumulated yaw from torso tracker, used to override movement vectors to be based on direction body is facing as you turn ( in degrees ) 
+	float	_prevYawTorso;			// Used by accumulator above
 
 	unsigned int _counter;
  
+	// The following three methods get the tracker values ( still not yet adjusted per the world space )
 	matrix3x4_t getTrackedTorso( void );
 	matrix3x4_t getTrackedRightHand( void );
 	matrix3x4_t getTrackedLeftHand( void );
+	
+
 	void		calibrate( VMatrix& torsoMatrix );
 	bool		writeDebug( void );
 
