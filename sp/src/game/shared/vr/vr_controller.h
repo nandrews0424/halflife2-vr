@@ -64,7 +64,8 @@ protected:
 	unsigned int _counter;
  
 	matrix3x4_t getTrackedTorso( void );
-	matrix3x4_t getTrackedRightHand( bool includeCalibration=true );
+	matrix3x4_t getTrackedRightHand( void );
+	matrix3x4_t getTrackedLeftHand( void );
 	void		calibrate( VMatrix& torsoMatrix );
 	bool		writeDebug( void );
 

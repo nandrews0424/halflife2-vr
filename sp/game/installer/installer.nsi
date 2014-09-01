@@ -1,5 +1,5 @@
 !include "MUI2.nsh"
-!define VERSION '1.3.0b'
+!define VERSION '1.4.0'
 
 Name "Half-Life VR"
 
@@ -56,7 +56,6 @@ Function .onInit
 	ReadRegStr $STEAM_EXE HKCU "Software\Valve\Steam" "SteamExe"
 	
 	StrCmp $SDK_INSTALLED "1" SDK_INSTALLED
-		
 
 		MessageBox MB_YESNO|MB_ICONQUESTION \
 		    "The Source SDK 2013 is required to play this mod but wasn't \ 

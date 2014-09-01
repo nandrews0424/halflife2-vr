@@ -168,24 +168,24 @@ bool MotionTracker::isTrackingTorso( )
 	return true; // todo: check for stem tracker...
 }
 
-matrix3x4_t MotionTracker::getTrackedTorso()
-{	
+matrix3x4_t MotionTracker::getTrackedLeftHand()
+{
 	return getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1L));
 }
 
-matrix3x4_t MotionTracker::getTrackedRightHand(bool includeCalibration)
+matrix3x4_t MotionTracker::getTrackedRightHand()
 {
-	matrix3x4_t m = getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1R));
-
-	if ( mt_tactical_haptics.GetBool() )
-	{
-		VMatrix tmp(m);
-		tmp.SetBasisVectors(-tmp.GetUp(), -tmp.GetLeft(), -tmp.GetForward()); 
-		return tmp.As3x4();
-	}
-	
-	return m;
+	return getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1R));
 }
+
+matrix3x4_t MotionTracker::getTrackedTorso()
+{
+	return getTrackedLeftHand();
+}
+
+
+
+
 
 void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 {
@@ -216,12 +216,7 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	
 
 	// Depending on the weapon we actually need to set the weapon angles per the vector between the two hands.
-	bool twoHanded = true;
-
-	// If the menu isn't up, check for a weapon and if so mount the hud to it
-	
-
-
+	bool twoHanded = false;
 	/* 
 		Handle custom aim modes - WIP 
 		0 - one handed aiming (default)
@@ -246,7 +241,7 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 
 	if ( aimMode > 0 &&  _controlMode == TRACK_BOTH_HANDS )
 	{
-		matrix3x4_t leftHandMatrix = getTrackedTorso();								// really just the left hand for now
+		matrix3x4_t leftHandMatrix = getTrackedLeftHand();								// really just the left hand for now
 		Vector vLeftHand;
 		MatrixPosition(leftHandMatrix, vLeftHand);
 		Vector vEyesToLeftHand = (vLeftHand - _vecBaseToTorso) + vEyes;
@@ -293,7 +288,7 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 	}
 
 	matrix3x4_t weaponMatrix = getTrackedRightHand();
-		
+	
 	Vector vWeapon, vEyes;
 	MatrixPosition(weaponMatrix, vWeapon);
 	MatrixPosition(_eyesToTorsoTracker, vEyes);
