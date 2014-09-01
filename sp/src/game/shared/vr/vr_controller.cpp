@@ -165,19 +165,35 @@ bool MotionTracker::isTrackingTorso( )
 	return true; // todo: check for stem tracker...
 }
 
-matrix3x4_t MotionTracker::getTrackedLeftHand()
+// Converts sixense tracker info into calibrated matrix representing the eye to point data in calibrated world space
+void		MotionTracker::applyCalibration(matrix3x4_t& m)
 {
-	return getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1L));
+	Vector v;
+	MatrixPosition(m, v);
+	Vector offsetFromCalibratedPoint = v - _vecBaseToTorso;
+	PositionMatrix(offsetFromCalibratedPoint, m);
+	MatrixMultiply(_sixenseBaseToWorld, m, m);
 }
 
-matrix3x4_t MotionTracker::getTrackedRightHand()
+matrix3x4_t MotionTracker::getTrackedLeftHand( bool calibrated )
 {
-	return getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1R));
+	matrix3x4_t m = getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1L));
+	if (calibrated)
+		applyCalibration(m);
+	return m;
 }
 
-matrix3x4_t MotionTracker::getTrackedTorso()
+matrix3x4_t MotionTracker::getTrackedRightHand( bool calibrated )
 {
-	return getTrackedLeftHand();
+	matrix3x4_t m = getMatrixFromData(getControllerData(sixenseUtils::ControllerManager::P1R));
+	if (calibrated)
+		applyCalibration(m);
+	return m;
+}
+
+matrix3x4_t MotionTracker::getTrackedTorso( bool calibrated )
+{
+	return getTrackedLeftHand(calibrated);
 }
 
 
@@ -187,22 +203,9 @@ void MotionTracker::updateViewmodelOffset(Vector& vmorigin, QAngle& vmangles)
 	if ( !_initialized )
 		return;
 
-	matrix3x4_t weaponMatrix	= getTrackedRightHand();
-	
-	Vector weaponPos;
-
-	// adjust weapon matrix to be relative to the player eyes rather than to the base station - TODO: clean this up to use less objects
-	Vector vWeapon;
-	MatrixPosition(weaponMatrix, vWeapon);
-	Vector vEyesToWeapon = vWeapon - _vecBaseToTorso;
-	PositionMatrix(vEyesToWeapon, weaponMatrix);							
-
-	MatrixMultiply(_sixenseBaseToWorld, weaponMatrix, weaponMatrix);				// _sixenseToWorld converts from tracker to world space ( accounting for mouse / joy yaw inputs )
-	MatrixMultiply(_sixenseBaseToCalibratedForward.As3x4(), weaponMatrix, weaponMatrix);		// adjust per the calibrated zero direction in of the user to the base station
-	
-	MatrixPosition(weaponMatrix, weaponPos);								// get the angles & positions back off
-	MatrixAngles(weaponMatrix, vmangles);
-	vmorigin += weaponPos;
+	matrix3x4_t mRightHand = getTrackedRightHand();
+	MatrixAngles(mRightHand, vmangles);
+	vmorigin += VMatrix(mRightHand).GetTranslation();
 }
 
 void MotionTracker::getEyeToWeaponOffset(Vector& offset)
@@ -213,17 +216,7 @@ void MotionTracker::getEyeToWeaponOffset(Vector& offset)
 		return;
 	}
 
-	matrix3x4_t weaponMatrix = getTrackedRightHand();
-	
-	Vector vWeapon;
-	MatrixPosition(weaponMatrix, vWeapon);
-	offset = vWeapon - _vecBaseToTorso;														// we're really getting the weapon offset from the eyes in tracker space
-	PositionMatrix(offset, weaponMatrix);													// position is reset rather than distance to base to distance to torso tracker
-
-	MatrixMultiply(_sixenseBaseToWorld, weaponMatrix, weaponMatrix);						// convert from sixense to torso coordinates
-	MatrixMultiply(_sixenseBaseToCalibratedForward.As3x4(), weaponMatrix, weaponMatrix);	// from torso to adjusted... todo: just for clarity, it should be sixenseToCalibrated -> calibratedToTorso
-	
-	MatrixPosition(weaponMatrix, offset);													// get the position back off
+	MatrixPosition(getTrackedRightHand(), offset);													// get the position back off
 }
 
 
@@ -235,17 +228,8 @@ void MotionTracker::getEyeToLeftHandOffset(Vector& offset)
 		return;
 	}
 
-	matrix3x4_t leftHandMatrix = getTrackedLeftHand(); 
-		
-	Vector vWeapon;
-	MatrixPosition(leftHandMatrix, vWeapon);
 	
-	offset = vWeapon - _vecBaseToTorso;				
-
-	PositionMatrix(offset, leftHandMatrix);													// position is reset rather than distance to base to distance to torso tracker
-	MatrixMultiply(_sixenseBaseToWorld, leftHandMatrix, leftHandMatrix);						// convert from sixense to torso coordinates
-	MatrixMultiply(_sixenseBaseToCalibratedForward.As3x4(), leftHandMatrix, leftHandMatrix);				// from torso to adjusted... todo: just for clarity, it should be sixenseToCalibrated -> calibratedToTorso
-	MatrixPosition(leftHandMatrix, offset);													// get the position back off
+	MatrixPosition(getTrackedLeftHand(), offset);													// get the position back off
 }
 
 
@@ -261,12 +245,7 @@ void MotionTracker::getViewOffset(Vector& offset)
 		return;
 	}
 
-	matrix3x4_t torsoMatrix = getTrackedTorso();
-	MatrixPosition(torsoMatrix, offset);
-	offset -= _vecBaseToTorso;
-	PositionMatrix(offset, torsoMatrix);
-	MatrixMultiply(_sixenseBaseToWorld, torsoMatrix, torsoMatrix);
-	MatrixPosition(torsoMatrix, offset);
+	MatrixPosition(getTrackedTorso(), offset);
 }
 
 
@@ -276,7 +255,7 @@ void MotionTracker::overrideViewOffset(VMatrix& viewMatrix)
 		return;
 
 	Vector offset;
-	getViewOffset(offset);
+	MatrixPosition(getTrackedTorso(), offset);
 	Vector viewTranslation = viewMatrix.GetTranslation();
 	viewTranslation += offset;
 	viewMatrix.SetTranslation(viewTranslation);
@@ -358,6 +337,9 @@ void MotionTracker::update(VMatrix& torsoMatrix)
 	
 	AngleMatrix(QAngle(0, _baseEngineYaw, 0), _sixenseBaseToWorld);
 
+	// if we can just combine the rotations here
+	MatrixMultiply(_sixenseBaseToWorld, _sixenseBaseToCalibratedForward.As3x4(), _sixenseBaseToWorld);
+
 	_counter++;
 }
 
@@ -373,7 +355,7 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 	_accumulatedYawTorso = 0; // only used for movement vector adjustments...
 
 	// regardless of control mode, we snapshot the torso (lhand) tracker offset, the only change is how it's applied in the viewmodel offsets...
-	matrix3x4_t trackedTorso = getTrackedTorso();
+	matrix3x4_t trackedTorso = getTrackedTorso( false );
 	MatrixGetTranslation(trackedTorso, _vecBaseToTorso);
 		
 	if ( _controlMode == TRACK_BOTH_HANDS )
@@ -383,7 +365,7 @@ void MotionTracker::calibrate(VMatrix& torsoMatrix)
 		// and infer forward as perpendicular to the vector between the controllers
 		// removing the need to know the base station alignment
 
-		matrix3x4_t matRightHand = getTrackedRightHand();
+		matrix3x4_t matRightHand = getTrackedRightHand( false );
 		Vector rightHand, leftHand, rightHandToLeft;
 		leftHand = _vecBaseToTorso;
 		MatrixGetTranslation(matRightHand, rightHand);

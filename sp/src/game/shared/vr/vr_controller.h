@@ -64,10 +64,11 @@ protected:
 
 	unsigned int _counter;
  
-	// The following three methods get the tracker values ( still not yet adjusted per the world space )
-	matrix3x4_t getTrackedTorso( void );
-	matrix3x4_t getTrackedRightHand( void );
-	matrix3x4_t getTrackedLeftHand( void );
+	matrix3x4_t getTrackedTorso( bool calibrated = true );
+	matrix3x4_t getTrackedRightHand( bool calibrated = true );
+	matrix3x4_t getTrackedLeftHand( bool calibrated = true );
+
+	void		applyCalibration( matrix3x4_t& m ); // converts the tracker matrix to one that is eye relative in game space
 	
 
 	void		calibrate( VMatrix& torsoMatrix );
