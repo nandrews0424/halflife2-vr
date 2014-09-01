@@ -50,9 +50,11 @@ protected:
 	bool	_calibrate;
 	float	_lastCalibrated;
 	
-	matrix3x4_t _sixenseToWorld;
-	matrix3x4_t	_torsoCalibration;
-	VMatrix		_rhandCalibration;
+	
+	matrix3x4_t _sixenseBaseToEyes; // Coord transform from base relative to player eye relative ( currently just the offset )
+	
+	matrix3x4_t _sixenseBaseToWorld;				// Sixense base relative coordinates to world
+	VMatrix		_sixenseBaseToCalibratedForward;	// Rotation matrix to adjust from sixense base as forward to that with arbitrarily calibrated direction as forward
 	
 	Vector	_vecBaseToTorso;
 
