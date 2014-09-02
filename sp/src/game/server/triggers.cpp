@@ -1731,20 +1731,27 @@ void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 	if ( !m_inDelayedTrigger )
 	{
 
+
+		color32 color = color32();
+		color.r = 0;
+		color.g = 0;
+		color.b = 0;
+		color.a = 255;
+
 		// Vehicles move through their transition volumes too fast for slow fadeout
 		if ( !pPlayer->IsInAVehicle() )
 		{
 			m_inDelayedTrigger = true;
-			m_delayUntil = gpGlobals->curtime + 1.75f;
-			engine->ClientCommand(pPlayer->edict(), "fadeout .75");
-			SetNextThink( m_delayUntil + .2f );
+			m_delayUntil = gpGlobals->curtime + 1.25f;
+			SetNextThink( m_delayUntil );
+			UTIL_ScreenFade(pPlayer, color, .5, 0, FFADE_OUT | FFADE_PURGE | FFADE_STAYOUT);
 		}
 		else 
 		{
 			m_inDelayedTrigger = true;
 			m_delayUntil = gpGlobals->curtime + .7f;
-			engine->ClientCommand(pPlayer->edict(), "fadeout .1");
 			SetNextThink( m_delayUntil + .05f );
+			UTIL_ScreenFade(pPlayer, color, .25, 0, FFADE_OUT | FFADE_PURGE | FFADE_STAYOUT);
 		}
 	}
 }
@@ -1759,7 +1766,12 @@ void CChangeLevel::CancelDelayedTrigger()
 	m_inDelayedTrigger = false;
 	m_delayUntil = 0;
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
-	engine->ClientCommand(pPlayer->edict(), "fadein .1");
+	color32 color = color32();
+	color.r = 0;
+	color.g = 0;
+	color.b = 0;
+	color.a = 255;
+	UTIL_ScreenFade(pPlayer, color, .75, 0, FFADE_IN | FFADE_PURGE);
 }
 
 

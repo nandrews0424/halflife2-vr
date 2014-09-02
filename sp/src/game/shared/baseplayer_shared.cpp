@@ -164,10 +164,6 @@ void CBasePlayer::ItemPreFrame()
 	// Handle use events
 	PlayerUse();
 
-#if !defined( CLIENT_DLL )
-	SetLaserCrosshairPosition();
-#endif
-
 	CBaseCombatWeapon *pActive = GetActiveWeapon();
 
 	// Allow all the holstered weapons to update
@@ -890,11 +886,6 @@ bool CBasePlayer::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmodelindex 
 		if ( pViewModel )
 			pViewModel->RemoveEffects( EF_NODRAW );
 		ResetAutoaim( );
-
-#if !defined(CLIENT_DLL)
-		// update the laser crosshair for the new weapon
-		UpdateLaserCrosshair();
-#endif
 
 		return true;
 	}

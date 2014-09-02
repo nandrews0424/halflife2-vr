@@ -97,8 +97,6 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to 
 
 static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
 
-ConVar crosshair_laser( "crosshair_laser", "0", FCVAR_REPLICATED, "Enables crosshair laser");
-
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -5045,11 +5043,6 @@ void CBasePlayer::Spawn( void )
 	UpdateLastKnownArea();
 
 	m_weaponFiredTimer.Invalidate();
-
-	if ( m_laserCrosshair == NULL )
-	{
-		m_laserCrosshair = CLaserCrosshair::Create(GetAbsOrigin(), this, true);
-	}
 }
 
 void CBasePlayer::Activate( void )
@@ -9343,64 +9336,6 @@ void CBasePlayer::AdjustDrownDmg( int nAmount )
 	{
 		m_idrowndmg = m_idrownrestored;
 	}
-}
-
-// update based on the weapon info
-void CBasePlayer::UpdateLaserCrosshair( void )
-{
-	if ( m_laserCrosshair == NULL )
-	{
-		m_laserCrosshair = CLaserCrosshair::Create(GetAbsOrigin(), this, true);
-	}
-
-	if ( !crosshair_laser.GetBool() )
-		return;
-
-	CBaseCombatWeapon* pWeapon = GetActiveWeapon();
-	if ( pWeapon ) 
-	{
-		m_laserCrosshair->TurnOn();
-		const FileWeaponInfo_t info = pWeapon->GetWpnData();
-		m_laserCrosshair->SetScale(info.laserCrosshairScale);
-		m_laserCrosshair->SetTransparency( kRenderGlow, info.laserCrosshairColor.r(), info.laserCrosshairColor.g(), info.laserCrosshairColor.b(), info.laserCrosshairColor.a(), kRenderFxNoDissipation );
-	}
-	else
-	{
-		m_laserCrosshair->TurnOff();
-	}
-}
-
-void CBasePlayer::SetLaserCrosshairPosition( void )
-{
-	if ( m_laserCrosshair == NULL )
-	{
-		m_laserCrosshair = CLaserCrosshair::Create(GetAbsOrigin(), this, true);
-	}
-
-	if ( !crosshair_laser.GetBool() )
-	{
-		m_laserCrosshair->TurnOff();
-		return;
-	} 
-	else if ( !m_laserCrosshair->IsOn() )
-	{
-		m_laserCrosshair->TurnOn();
-	}
-
-	CBaseViewModel* pViewModel = GetViewModel();
-	if ( !m_laserCrosshair || !pViewModel )
-		return;
-
-	Vector origin, forward, right, up, traceEnd;
-	pViewModel->GetAttachment("muzzle", origin, &forward);
-	
-	VectorVectors(forward, right, up);
-	origin = Weapon_ShootPosition() + up*3; 
-
-	traceEnd = origin + ( forward * MAX_TRACE_LENGTH );
-	trace_t tr;
-	UTIL_TraceLine( origin, traceEnd, (MASK_SHOT & ~CONTENTS_WINDOW), this, COLLISION_GROUP_NONE, &tr );
-	m_laserCrosshair->SetLaserPosition( tr.endpos, tr.plane.normal );
 }
 
 

@@ -1,6 +1,7 @@
 #include <math.h>
 #include <sixense_utils\interfaces.hpp>
 
+
 // hydra control modes
 enum MotionControlMode_t
 {

@@ -25,6 +25,7 @@
 #include "c_env_fog_controller.h"
 #include "igameevents.h"
 #include "GameEventListener.h"
+#include "laser_crosshair.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_item.h"
@@ -450,6 +451,13 @@ public:
 	Vector 			m_eyeToLeftHandOffset;
 	Vector 			m_eyeOffset;
 	QAngle 			m_torsoAngles;
+
+	C_LaserSprite	*m_laserCrosshair;
+
+
+
+
+
 protected:
 
 	void				CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );

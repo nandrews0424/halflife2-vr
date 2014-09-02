@@ -20,6 +20,7 @@
 #include "usermessages.h"
 
 
+
 // user message handler func for suit power so it's available to the client, no idea why this wasn't already there....
 void __MsgFunc_CLocalPlayer_Battery(bf_read &msg) 
 {						
@@ -29,7 +30,6 @@ void __MsgFunc_CLocalPlayer_Battery(bf_read &msg)
 		pPlayer->SetSuitArmor(Clamp(msg.ReadShort(), 0, 100));
 	}
 }
-
 
 using sixenseMath::Vector2;
 using sixenseMath::Vector3;
@@ -58,6 +58,11 @@ MotionTracker* _motionTracker;
 #define MM_TO_INCHES(x) (x/1000.f)*(1/METERS_PER_INCH)
 
 extern MotionTracker* g_MotionTracker() { 	return _motionTracker; }
+
+
+
+
+C_LaserSprite* laserSprite;
 
 
 // A bunch of sixense integration crap that needs to be pulled out along w/ vr.io`
@@ -122,6 +127,10 @@ MotionTracker::MotionTracker()
 
 	_sixenseBaseToCalibratedForward.Identity(); 
 	_controlMode = (MotionControlMode_t) mt_control_mode.GetInt();
+
+
+	
+	laserSprite = new C_LaserSprite();
 
 	usermessages->HookMessage("Battery", __MsgFunc_CLocalPlayer_Battery ); // while this has nothing really to do with this code, it's VR only
 } 
@@ -681,3 +690,12 @@ bool MotionTracker::showMenuPanel()
 {
 	return _sixenseCalibrationNeeded;
 }
+
+
+
+
+
+
+
+
+

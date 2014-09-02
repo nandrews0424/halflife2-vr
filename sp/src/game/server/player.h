@@ -829,11 +829,6 @@ private:
 
 public:
 	
-
-	void 			UpdateLaserCrosshair(); 		// called when the weapons change so laser color / opacity / size can be adjusted^M
-	void 			SetLaserCrosshairPosition(); 	// called per frame so position can be set^
-
-
 	// Used by gamemovement to check if the entity is stuck.
 	int m_StuckLast;
 	

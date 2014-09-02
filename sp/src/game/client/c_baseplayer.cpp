@@ -50,6 +50,7 @@
 #include "sourcevr/isourcevirtualreality.h"
 #include "client_virtualreality.h"
 #include "vr/vr_controller.h"
+#include "laser_crosshair.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -472,6 +473,9 @@ void C_BasePlayer::Spawn( void )
 
     SetModel( "models/player.mdl" );
 
+	if ( IsLocalPlayer() )
+		m_laserCrosshair = new C_LaserSprite();
+	
 	Precache();
 
 	SetThink(NULL);
@@ -857,6 +861,15 @@ void C_BasePlayer::PostDataUpdate( DataUpdateType_t updateType )
 
  		g_MotionTracker()->getViewOffset(m_eyeOffset);
  		m_torsoAngles = g_MotionTracker()->getTorsoAngles();
+
+		
+		if (IsLocalPlayer() && m_laserCrosshair == NULL)
+			m_laserCrosshair = new C_LaserSprite();
+
+		m_laserCrosshair->Update();
+		
+
+
 
 		if ( !m_bWasFreezeFraming && GetObserverMode() == OBS_MODE_FREEZECAM )
 		{
