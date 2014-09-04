@@ -411,36 +411,6 @@ void CBaseViewModel::CalcViewModelView( CBasePlayer *owner, const Vector& eyePos
 	Vector vmorigin = eyePosition;
 
 	CBaseCombatWeapon *pWeapon = m_hWeapon.Get();
-	//Allow weapon lagging
-	if ( pWeapon != NULL )
-	{
-#if defined( CLIENT_DLL )
-		if ( !prediction->InPrediction() && ~g_MotionTracker()->isTrackingWeapon() )
-#endif
-		{
-			// add weapon-specific bob 
-			// pWeapon->AddViewmodelBob( this, vmorigin, vmangles );
-#if defined ( CSTRIKE_DLL )
-			// CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
-#endif
-		}
-	}
-	// Add model-specific bob even if no weapon associated (for head bob for off hand models)
-	// AddViewModelBob( owner, vmorigin, vmangles );
-#if !defined ( CSTRIKE_DLL )
-	// This was causing weapon jitter when rotating in updated CS:S; original Source had this in above InPrediction block  07/14/10
-	// Add lag
-	// CalcViewModelLag( vmorigin, vmangles, vmangoriginal );
-#endif
-
-#if defined( CLIENT_DLL )
-	if ( !prediction->InPrediction() )
-	{
-		// Let the viewmodel shake at about 10% of the amplitude of the player's view
-		// vieweffects->ApplyShake( vmorigin, vmangles, 0.1 );	
-	}
-#endif
-
 	if( UseVR() )
 	{
 		g_ClientVirtualReality.OverrideViewModelTransform( vmorigin, vmangles, pWeapon && pWeapon->ShouldUseLargeViewModelVROverride() );
@@ -448,35 +418,9 @@ void CBaseViewModel::CalcViewModelView( CBasePlayer *owner, const Vector& eyePos
 
 	SetLocalOrigin( vmorigin );
 	SetLocalAngles( vmangles );
-
-#ifdef SIXENSE
-	if( g_pSixenseInput->IsEnabled() && (owner->GetObserverMode()==OBS_MODE_NONE) && !UseVR() )
-	{
-		const float max_gun_pitch = 20.0f;
-
-		float viewmodel_fov_ratio = g_pClientMode->GetViewModelFOV()/owner->GetFOV();
-		QAngle gun_angles = g_pSixenseInput->GetViewAngleOffset() * -viewmodel_fov_ratio;
-
-		// Clamp pitch a bit to minimize seeing back of viewmodel
-		if( gun_angles[PITCH] < -max_gun_pitch )
-		{ 
-			gun_angles[PITCH] = -max_gun_pitch; 
-		}
-
-#ifdef WIN32 // ShouldFlipViewModel comes up unresolved on osx? Mabye because it's defined inline? fixme
-		if( ShouldFlipViewModel() ) 
-		{
-			gun_angles[YAW] *= -1.0f;
-		}
+	vmangles = EyeAngles() +  gun_angles;
+	SetLocalAngles( vmangles );
 #endif
-
-		vmangles = EyeAngles() +  gun_angles;
-
-		SetLocalAngles( vmangles );
-	}
-#endif
-#endif
-
 }
 
 //-----------------------------------------------------------------------------
@@ -486,57 +430,7 @@ float g_fMaxViewModelLag = 1.5f;
 
 void CBaseViewModel::CalcViewModelLag( Vector& origin, QAngle& angles, QAngle& original_angles )
 {
-	Vector vOriginalOrigin = origin;
-	QAngle vOriginalAngles = angles;
-
-	// Calculate our drift
-	Vector	forward;
-	AngleVectors( angles, &forward, NULL, NULL );
-
-	if ( gpGlobals->frametime != 0.0f )
-	{
-		Vector vDifference;
-		VectorSubtract( forward, m_vecLastFacing, vDifference );
-
-		float flSpeed = 5.0f;
-
-		// If we start to lag too far behind, we'll increase the "catch up" speed.  Solves the problem with fast cl_yawspeed, m_yaw or joysticks
-		//  rotating quickly.  The old code would slam lastfacing with origin causing the viewmodel to pop to a new position
-		float flDiff = vDifference.Length();
-		if ( (flDiff > g_fMaxViewModelLag) && (g_fMaxViewModelLag > 0.0f) )
-		{
-			float flScale = flDiff / g_fMaxViewModelLag;
-			flSpeed *= flScale;
-		}
-
-		// FIXME:  Needs to be predictable?
-		VectorMA( m_vecLastFacing, flSpeed * gpGlobals->frametime, vDifference, m_vecLastFacing );
-		// Make sure it doesn't grow out of control!!!
-		VectorNormalize( m_vecLastFacing );
-		VectorMA( origin, 5.0f, vDifference * -1.0f, origin );
-
-		Assert( m_vecLastFacing.IsValid() );
-	}
-
-	Vector right, up;
-	AngleVectors( original_angles, &forward, &right, &up );
-
-	float pitch = original_angles[ PITCH ];
-	if ( pitch > 180.0f )
-		pitch -= 360.0f;
-	else if ( pitch < -180.0f )
-		pitch += 360.0f;
-
-	if ( g_fMaxViewModelLag == 0.0f )
-	{
-		origin = vOriginalOrigin;
-		angles = vOriginalAngles;
-	}
-
-	//FIXME: These are the old settings that caused too many exposed polys on some models
-	VectorMA( origin, -pitch * 0.035f,	forward,	origin );
-	VectorMA( origin, -pitch * 0.03f,		right,	origin );
-	VectorMA( origin, -pitch * 0.02f,		up,		origin);
+	// no longer necessary in VR
 }
 
 //-----------------------------------------------------------------------------
